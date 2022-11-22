@@ -8,7 +8,7 @@ import {
   NbRadioModule,
   NbSelectModule,
   NbListModule,
-  NbIconModule,
+  NbIconModule, NbAlertModule,
 } from '@nebular/theme';
 import { NgxEchartsModule } from 'ngx-echarts';
 
@@ -30,12 +30,14 @@ import { PlayerComponent } from './rooms/player/player.component';
 import { TrafficComponent } from './traffic/traffic.component';
 import { TrafficChartComponent } from './traffic/traffic-chart.component';
 import { FormsModule } from '@angular/forms';
+import {AlertComponent} from "./alert/alert.component";
 
 @NgModule({
   imports: [
     FormsModule,
     ThemeModule,
     NbCardModule,
+    NbAlertModule,
     NbUserModule,
     NbButtonModule,
     NbTabsetModule,
@@ -64,6 +66,7 @@ import { FormsModule } from '@angular/forms';
     SolarComponent,
     TrafficComponent,
     TrafficChartComponent,
+    AlertComponent,
   ],
 })
 export class DashboardModule { }

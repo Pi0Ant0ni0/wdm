@@ -11,11 +11,11 @@ const routes: Routes = [{
   component: PagesComponent,
   children: [
     {
-      path: 'dashboard',
+      path: 'globale',
       component: ECommerceComponent,
     },
     {
-      path: 'iot-dashboard',
+      path: 'personale',
       component: DashboardComponent,
     },
     {

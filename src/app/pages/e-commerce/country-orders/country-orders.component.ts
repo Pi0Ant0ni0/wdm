@@ -11,7 +11,7 @@ import { CountryOrderData } from '../../../infrastructure/@core/data/country-ord
       <nb-card-header>Country Orders Statistics</nb-card-header>
       <nb-card-body>
         <ngx-country-orders-map (select)="selectCountryById($event)"
-                                countryId="USA">
+                                countryId="ITA">
         </ngx-country-orders-map>
         <ngx-country-orders-chart [countryName]="countryName"
                                   [data]="countryData"
