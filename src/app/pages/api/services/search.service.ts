@@ -15,7 +15,7 @@ export class SearchService {
    *Make a search request on gateway
    * */
   public search=(command:SearchScheduleCommand):Observable<SearchScheduleResponseDTO>=>{
-    let url = `${environment.intelx}/searches`;
+    let url = `${environment.gateway}/searches`;
     return this._http.post(url,command);
   }
 
@@ -24,7 +24,7 @@ export class SearchService {
    */
 
   public createScheduler=(command:SearchScheduleCommand):Observable<SearchScheduleResponseDTO>=>{
-    let url = `${environment.intelx}/schedulers`;
+    let url = `${environment.gateway}/schedulers`;
     return this._http.post(url,command);
   }
 
@@ -33,7 +33,7 @@ export class SearchService {
    */
 
   public deleteScheduler=(command:SearchScheduleCommand):Observable<null>=>{
-    let url = `${environment.intelx}/schedulers`;
+    let url = `${environment.gateway}/schedulers`;
     return this._http.delete(url,command);
   }
 
@@ -41,7 +41,7 @@ export class SearchService {
    *request history searches for a given query
    * */
   public history=(query:String, maxResult:number):Observable<SearchScheduleResponseDTO>=>{
-    let url = `${environment.intelx}/searches`;
+    let url = `${environment.gateway}/searches`;
     return this._http.get(url,{query:query,maxResult:maxResult});
   }
 

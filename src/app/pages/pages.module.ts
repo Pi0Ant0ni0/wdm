@@ -7,6 +7,11 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { ECommerceModule } from './e-commerce/e-commerce.module';
 import { PagesRoutingModule } from './pages-routing.module';
 import { MiscellaneousModule } from '../infrastructure/template-components/miscellaneous/miscellaneous.module';
+import {SearchService} from "./api/services/search.service";
+import {HttpService} from "../infrastructure/services/http.service";
+import {JwtInterceptor} from "../infrastructure/services/jwt-token-interceptor.service";
+import {SessionService} from "./api/services/session.service";
+import {FormsModule} from "../infrastructure/template-components/forms/forms.module";
 
 @NgModule({
   imports: [
@@ -16,10 +21,21 @@ import { MiscellaneousModule } from '../infrastructure/template-components/misce
     DashboardModule,
     ECommerceModule,
     MiscellaneousModule,
+    FormsModule
   ],
   declarations: [
     PagesComponent,
   ],
+  providers:[
+    SearchService,
+    HttpService,
+    JwtInterceptor,
+    SessionService,
+
+  ],
+  exports:[
+    FormsModule
+  ]
 })
 export class PagesModule {
 }

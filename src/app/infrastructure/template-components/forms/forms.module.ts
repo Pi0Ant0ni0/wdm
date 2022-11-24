@@ -21,27 +21,30 @@ import { ButtonsComponent } from './buttons/buttons.component';
 import { FormsModule as ngFormsModule } from '@angular/forms';
 
 @NgModule({
-  imports: [
-    ThemeModule,
-    NbInputModule,
-    NbCardModule,
-    NbButtonModule,
-    NbActionsModule,
-    NbUserModule,
-    NbCheckboxModule,
-    NbRadioModule,
-    NbDatepickerModule,
-    FormsRoutingModule,
-    NbSelectModule,
-    NbIconModule,
-    ngFormsModule,
-  ],
-  declarations: [
-    FormsComponent,
-    ButtonsComponent,
-    FormInputsComponent,
-    FormLayoutsComponent,
-    DatepickerComponent,
-  ],
+    imports: [
+        ThemeModule,
+        NbInputModule,
+        NbCardModule,
+        NbButtonModule,
+        NbActionsModule,
+        NbUserModule,
+        NbCheckboxModule,
+        NbRadioModule,
+        NbDatepickerModule,
+        FormsRoutingModule,
+        NbSelectModule,
+        NbIconModule,
+        ngFormsModule,
+    ],
+    declarations: [
+        FormsComponent,
+        ButtonsComponent,
+        FormInputsComponent,
+        FormLayoutsComponent,
+        DatepickerComponent,
+    ],
+    exports: [
+        ButtonsComponent
+    ]
 })
 export class FormsModule { }

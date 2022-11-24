@@ -1,99 +1,109 @@
-import {Component, OnDestroy} from '@angular/core';
-import { NbThemeService } from '@nebular/theme';
-import { takeWhile } from 'rxjs/operators' ;
-import { SolarData } from '../../infrastructure/@core/data/solar';
+import {Component, OnInit} from '@angular/core';
+import {NbSearchService} from '@nebular/theme';
+import {SearchService} from "../api/services/search.service";
+import {Search, SearchScheduleCommand, SearchScheduleResponseDTO} from "../api/model/search.model";
+import {Observable, of} from "rxjs";
+import {ActivatedRoute} from "@angular/router";
+import {AlertDTO} from "../api/model/alert.model";
+import {SessionService} from "../api/services/session.service";
 
-interface CardSettings {
-  title: string;
-  iconClass: string;
-  type: string;
-}
 
 @Component({
   selector: 'ngx-dashboard',
   styleUrls: ['./dashboard.component.scss'],
   templateUrl: './dashboard.component.html',
 })
-export class DashboardComponent implements OnDestroy {
+export class DashboardComponent implements OnInit {
+  //result from query
+  public result: Search[] = [];
+  //alerts
+  public alerts: AlertDTO[] = [];
 
-  private alive = true;
+  constructor(private _activatedRoute: ActivatedRoute,
+              private _searchService: NbSearchService,
+              private _searchGateway: SearchService,
+              private _sessionService: SessionService,
+              //private _profileService: ProfileService
+  ) {
+    this._searchService.onSearchSubmit().subscribe((result) => {
+      let query = result.term;
+      this._makeSearch(query);
 
-  solarValue: number;
-  lightCard: CardSettings = {
-    title: 'Light',
-    iconClass: 'nb-lightbulb',
-    type: 'primary',
-  };
-  rollerShadesCard: CardSettings = {
-    title: 'Roller Shades',
-    iconClass: 'nb-roller-shades',
-    type: 'success',
-  };
-  wirelessAudioCard: CardSettings = {
-    title: 'Wireless Audio',
-    iconClass: 'nb-audio',
-    type: 'info',
-  };
-  coffeeMakerCard: CardSettings = {
-    title: 'Coffee Maker',
-    iconClass: 'nb-coffee-maker',
-    type: 'warning',
-  };
+    });
+  }
 
-  statusCards: string;
 
-  commonStatusCardsSet: CardSettings[] = [
-    this.lightCard,
-    this.rollerShadesCard,
-    this.wirelessAudioCard,
-    this.coffeeMakerCard,
-  ];
-
-  statusCardsByThemes: {
-    default: CardSettings[];
-    cosmic: CardSettings[];
-    corporate: CardSettings[];
-    dark: CardSettings[];
-  } = {
-    default: this.commonStatusCardsSet,
-    cosmic: this.commonStatusCardsSet,
-    corporate: [
-      {
-        ...this.lightCard,
-        type: 'warning',
-      },
-      {
-        ...this.rollerShadesCard,
-        type: 'primary',
-      },
-      {
-        ...this.wirelessAudioCard,
-        type: 'danger',
-      },
-      {
-        ...this.coffeeMakerCard,
-        type: 'info',
-      },
-    ],
-    dark: this.commonStatusCardsSet,
-  };
-
-  constructor(private themeService: NbThemeService,
-              private solarService: SolarData) {
-    this.themeService.getJsTheme()
-      .pipe(takeWhile(() => this.alive))
-      .subscribe(theme => {
-        this.statusCards = this.statusCardsByThemes[theme.name];
+  //if there are search params from previous search we execute the search
+  ngOnInit(): void {
+    this._activatedRoute.queryParams.subscribe((params) => {
+      let searchQuery = params["search"];
+      if (searchQuery) {
+        this._makeSearch(searchQuery);
+      }
     });
 
-    this.solarService.getSolarData()
-      .pipe(takeWhile(() => this.alive))
-      .subscribe((data) => {
-        this.solarValue = data;
-      });
+    // this._profileService.loadUserProfile().subscribe((user: Profile) => {
+    //   this._sessionService.getAlertsByUserId(user.userId).subscribe((alerts: AlertDTO[]) => {
+    //     this.alerts = alerts;
+    //   });
+    // });
+    this._mockupAlerts("userId").subscribe(resul=>{
+      this.alerts=resul;
+    });
   }
 
-  ngOnDestroy() {
-    this.alive = false;
+  //create searchCommand and execute the search
+  private _makeSearch = (query: string): void => {
+    let searchCommand: SearchScheduleCommand = new SearchScheduleCommand();
+    searchCommand.query = query;
+    this._mockup(searchCommand.query).subscribe((response: SearchScheduleResponseDTO) => {
+      //generare i rettangoli per ogni risposta
+      this.result = response.result;
+    });
   }
+
+
+  //just for test purpose
+  private _mockup = (query: string): Observable<SearchScheduleResponseDTO> => {
+    let dto: SearchScheduleResponseDTO = {
+      result: [
+        {
+          title: "titolo1",
+          category: "category1",
+          date: new Date(),
+          media: "media"
+        },
+        {
+          title: "titolo2",
+          category: "category2",
+          date: new Date(),
+          media: "media2"
+        },
+      ],
+      query: query,
+      timestamp: new Date()
+    };
+    return of(dto);
+  }
+
+  //just for test purpose
+  private _mockupAlerts = (userId: string): Observable<AlertDTO[]> => {
+    let dto: AlertDTO[] = [
+      {
+        query: "query1",
+        alertDate: new Date(),
+      },
+      {
+        query: "query2",
+        alertDate: new Date(),
+      },
+      {
+        query: "query3",
+        alertDate: new Date(),
+      },
+    ]
+    return of(dto);
+  }
+
+
 }

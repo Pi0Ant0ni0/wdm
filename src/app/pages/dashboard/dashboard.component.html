@@ -1,47 +1,34 @@
-<div class="row">
-  <ngx-alert>
-  </ngx-alert>
-</div>
-
-<div class="row">
-  <div class="col-xxxl-3 col-md-6" *ngFor="let statusCard of statusCards">
-    <ngx-status-card [title]="statusCard.title" [type]="statusCard.type">
-      <i [ngClass]="statusCard.iconClass"></i>
-    </ngx-status-card>
-  </div>
-</div>
-
-<div class="row">
-  <div class="col-xxxl-3 col-xxl-4 col-lg-5 col-md-6">
-    <ngx-temperature></ngx-temperature>
-  </div>
-
-  <div class="col-xxxl-9 col-xxl-8 col-lg-7 col-md-6">
-    <ngx-electricity></ngx-electricity>
-  </div>
-</div>
-
+<h1 *ngIf="result.length>0">Ricerche</h1>
 <div class="row">
   <div class="col-xxxl-9 col-xl-12">
-    <ngx-rooms></ngx-rooms>
+    <nb-accordion multi>
+      <nb-accordion-item *ngFor="let searchItem of result">
+        <nb-accordion-item-header>
+          {{searchItem.title}}
+        </nb-accordion-item-header>
+        <nb-accordion-item-body>
+         Data: {{searchItem.date | date}}
+          Category: {{searchItem.category}}
+          Media: {{searchItem.media}}
+        </nb-accordion-item-body>
+      </nb-accordion-item>
+    </nb-accordion>
   </div>
-
-  <div class="col-xxxl-3 col-xxl-4 col-lg-7 col-md-6">
-    <ngx-contacts></ngx-contacts>
+  <div class="col-xxxl-9 col-xl-12" >
+    <button nbButton status="danger" style="float: right; margin-top: 3%;">Crea Alert</button>
   </div>
-
-  <div class="col-xxxl-3 col-xxl-4 col-lg-5 col-md-6">
-    <ngx-solar [chartValue]="solarValue"></ngx-solar>
-
-    <ngx-kitten></ngx-kitten>
-  </div>
-
-  <div class="col-xxxl-3 col-xxl-4 col-md-5">
-    <ngx-traffic></ngx-traffic>
-    <ngx-weather></ngx-weather>
-  </div>
-
-  <div class="col-xxxl-6 col-xxl-12 col-md-7">
-    <ngx-security-cameras></ngx-security-cameras>
+</div>
+<h1 *ngIf="alerts.length>0">Alert configurati</h1>
+<div class="row">
+  <div class="col-xxxl-9 col-xl-12">
+    <nb-accordion multi>
+      <nb-accordion-item *ngFor="let alert of alerts">
+        <nb-accordion-item-header>
+          {{alert.query}} {{alert.alertDate | date}}
+        </nb-accordion-item-header>
+        <nb-accordion-item-body>
+        </nb-accordion-item-body>
+      </nb-accordion-item>
+    </nb-accordion>
   </div>
 </div>
