@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import {NbSearchService} from "@nebular/theme";
 import {Router} from "@angular/router";
 import {SearchService} from "../api/services/search.service";
-import {HistoryResponseDTO, Query} from "../api/model/search.model";
+import {HistoryResponseDTO, QueryOccurancy} from "../api/model/search.model";
 import {Observable, of} from "rxjs";
 
 @Component({
@@ -12,7 +12,7 @@ import {Observable, of} from "rxjs";
 export class ECommerceComponent {
 
   //result from query
-  public result: Query[] = [];
+  public result: QueryOccurancy[] = [];
 
   constructor(private _searchService:NbSearchService,
               private _searchGateway: SearchService,
@@ -33,16 +33,16 @@ export class ECommerceComponent {
     let dto: HistoryResponseDTO = {
       result: [
         {
-          title: "Achille",
-          value: 4,
+          query: "Achille",
+          occurancy: 4,
         },
         {
-          title: "Pio",
-          value: 6,
+          query: "Pio",
+          occurancy: 6,
         },
         {
-          title: "Ermanno",
-          value: 2,
+          query: "Ermanno",
+          occurancy: 2,
         },
       ],
     };

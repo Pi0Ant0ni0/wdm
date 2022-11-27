@@ -16,7 +16,7 @@ export class SearchService {
    * */
   public search=(command:SearchScheduleCommand):Observable<SearchScheduleResponseDTO>=>{
     let url = `${environment.gateway}/searches`;
-    return this._http.get(url,{history:"false"});
+    return this._http.post(url, command);
   }
 
   /**
@@ -24,7 +24,7 @@ export class SearchService {
    * */
   public history=():Observable<HistoryResponseDTO>=>{
     let url = `${environment.gateway}/searches`;
-    return this._http.get(url,{history:"true"});
+    return this._http.get(url);
   }
 
 }

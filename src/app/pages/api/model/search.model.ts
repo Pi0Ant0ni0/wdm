@@ -5,12 +5,12 @@ export class SearchScheduleResponseDTO{
 }
 
 export class HistoryResponseDTO{
-  public result:Query[];
+  public result:QueryOccurancy[];
 }
 
-export class Query{
-  public title:string;
-  public value:number;
+export class QueryOccurancy{
+  public query:string;
+  public occurancy:number;
 }
 
 export class Search{
