@@ -4,10 +4,22 @@ import {
   NbUserModule,
   NbIconModule, NbAccordionModule,
 } from '@nebular/theme';
+import {
+  IMqttMessage,
+  MqttModule,
+  IMqttServiceOptions
+} from 'ngx-mqtt';
 import { DashboardComponent } from './dashboard.component';
 import {SearchService} from "../api/services/search.service";
 import {CommonModule} from "@angular/common";
 import {FormsModule} from "../../infrastructure/template-components/forms/forms.module";
+import {environment} from "../../../environments/environment";
+
+export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
+  hostname: environment.mqttHostName,
+  port: environment.port,
+  path: ''
+};
 
 @NgModule({
   imports: [
@@ -16,7 +28,8 @@ import {FormsModule} from "../../infrastructure/template-components/forms/forms.
     NbIconModule,
     NbAccordionModule,
     CommonModule,
-    FormsModule
+    FormsModule,
+    MqttModule.forRoot(MQTT_SERVICE_OPTIONS)
   ],
   declarations: [
     DashboardComponent,

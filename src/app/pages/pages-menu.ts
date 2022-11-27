@@ -9,7 +9,7 @@ export const MENU_ITEMS: NbMenuItem[] = [
   },
   {
     title: 'Dashboard personale',
-    icon: 'grid-outline',
+    icon: 'person-outline',
     link: '/pages/personale',
   },
 ];

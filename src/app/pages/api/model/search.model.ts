@@ -4,6 +4,15 @@ export class SearchScheduleResponseDTO{
   public result:Search[];
 }
 
+export class HistoryResponseDTO{
+  public result:Query[];
+}
+
+export class Query{
+  public title:string;
+  public value:number;
+}
+
 export class Search{
   public title:string;
   public date:Date;

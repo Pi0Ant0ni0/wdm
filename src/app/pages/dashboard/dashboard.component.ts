@@ -2,11 +2,19 @@ import {Component, OnInit} from '@angular/core';
 import {NbSearchService} from '@nebular/theme';
 import {SearchService} from "../api/services/search.service";
 import {Search, SearchScheduleCommand, SearchScheduleResponseDTO} from "../api/model/search.model";
-import {Observable, of} from "rxjs";
+import {Observable, of, Subscription} from "rxjs";
 import {ActivatedRoute} from "@angular/router";
 import {AlertDTO} from "../api/model/alert.model";
 import {SessionService} from "../api/services/session.service";
 
+import {
+  IMqttMessage,
+  MqttModule,
+  IMqttServiceOptions,
+  MqttService,
+} from 'ngx-mqtt';
+import {BreachService} from "../api/services/breach.service";
+import {ProfileService} from "../../infrastructure/services/profile.service";
 
 @Component({
   selector: 'ngx-dashboard',
@@ -19,6 +27,10 @@ export class DashboardComponent implements OnInit {
   //alerts
   public alerts: AlertDTO[] = [];
 
+  //servono per test MQTT
+  private subscription: Subscription;
+  public message: string;
+
   constructor(private _activatedRoute: ActivatedRoute,
               private _searchService: NbSearchService,
               private _searchGateway: SearchService,
@@ -26,7 +38,7 @@ export class DashboardComponent implements OnInit {
               //private _profileService: ProfileService
   ) {
     this._searchService.onSearchSubmit().subscribe((result) => {
-      let query = result.term;
+      let query = result.term
       this._makeSearch(query);
 
     });
@@ -91,14 +103,17 @@ export class DashboardComponent implements OnInit {
     let dto: AlertDTO[] = [
       {
         query: "query1",
+        fileName: "Pippo.txt",
         alertDate: new Date(),
       },
       {
         query: "query2",
+        fileName: "Pluto.txt",
         alertDate: new Date(),
       },
       {
         query: "query3",
+        fileName: "Paperino.txt",
         alertDate: new Date(),
       },
     ]

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {HttpService} from "../../../infrastructure/services/http.service";
 import {Observable} from "rxjs";
-import {SearchScheduleCommand, SearchScheduleResponseDTO} from "../model/search.model";
+import {HistoryResponseDTO, SearchScheduleCommand, SearchScheduleResponseDTO} from "../model/search.model";
 import {environment} from "../../../../environments/environment";
 
 @Injectable({
@@ -16,34 +16,15 @@ export class SearchService {
    * */
   public search=(command:SearchScheduleCommand):Observable<SearchScheduleResponseDTO>=>{
     let url = `${environment.gateway}/searches`;
-    return this._http.post(url,command);
-  }
-
-  /**
-   * Create new scheduler (if not exist in IntelxMS) given a query
-   */
-
-  public createScheduler=(command:SearchScheduleCommand):Observable<SearchScheduleResponseDTO>=>{
-    let url = `${environment.gateway}/schedulers`;
-    return this._http.post(url,command);
-  }
-
-  /**
-   * Delete a scheduler given a query
-   */
-
-  public deleteScheduler=(command:SearchScheduleCommand):Observable<null>=>{
-    let url = `${environment.gateway}/schedulers`;
-    return this._http.delete(url,command);
+    return this._http.get(url,{history:"false"});
   }
 
   /**
    *request history searches for a given query
    * */
-  public history=(query:String, maxResult:number):Observable<SearchScheduleResponseDTO>=>{
+  public history=():Observable<HistoryResponseDTO>=>{
     let url = `${environment.gateway}/searches`;
-    return this._http.get(url,{query:query,maxResult:maxResult});
+    return this._http.get(url,{history:"true"});
   }
-
 
 }
