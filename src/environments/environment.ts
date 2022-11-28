@@ -14,6 +14,11 @@ export const environment = {
   production: false,
   //TODO modifica il path
   gateway: "http://127.0.0.1:8080/wm",
-  mqttHostName: "broker.emqx.io",
-  port: 1883
+  mqttHostName: "test.mosquitto.org",
+  port: 8081,
+  clean: true, // Retain session
+  connectTimeout: 4000, // Timeout period
+  reconnectPeriod: 4000, // Reconnect period
+  clientId: 'mqttx_597046f4',
+  path: ""
 };

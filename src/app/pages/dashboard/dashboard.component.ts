@@ -1,5 +1,11 @@
 import {Component, OnInit} from '@angular/core';
-import {NbSearchService} from '@nebular/theme';
+import {
+  NbComponentStatus,
+  NbGlobalPhysicalPosition,
+  NbGlobalPosition,
+  NbSearchService,
+  NbToastrService
+} from '@nebular/theme';
 import {SearchService} from "../api/services/search.service";
 import {Search, SearchScheduleCommand, SearchScheduleResponseDTO} from "../api/model/search.model";
 import {Observable, of, Subscription} from "rxjs";
@@ -15,6 +21,8 @@ import {
 } from 'ngx-mqtt';
 import {BreachService} from "../api/services/breach.service";
 import {ProfileService} from "../../infrastructure/services/profile.service";
+import {environment} from "../../../environments/environment";
+import {MQTT_SERVICE_OPTIONS} from "./dashboard.module";
 
 @Component({
   selector: 'ngx-dashboard',
@@ -35,7 +43,9 @@ export class DashboardComponent implements OnInit {
               private _searchService: NbSearchService,
               private _searchGateway: SearchService,
               private _sessionService: SessionService,
-              //private _profileService: ProfileService
+              //private _profileService: ProfileService,
+              private _mqttService: MqttService,
+              private _toastrService: NbToastrService,
   ) {
     this._searchService.onSearchSubmit().subscribe((result) => {
       let query = result.term
@@ -47,6 +57,7 @@ export class DashboardComponent implements OnInit {
 
   //if there are search params from previous search we execute the search
   ngOnInit(): void {
+
     this._activatedRoute.queryParams.subscribe((params) => {
       let searchQuery = params["search"];
       if (searchQuery) {
@@ -59,9 +70,33 @@ export class DashboardComponent implements OnInit {
     //     this.alerts = alerts;
     //   });
     // });
-    this._mockupAlerts("userId").subscribe(resul=>{
-      this.alerts=resul;
+    this._mockupAlerts("userId").subscribe(result => {
+      this.alerts = result;
+      this.alerts.forEach(a => {
+        this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
+          this._showToast("Nuovo breach", JSON.parse(message.payload.toString()).title);
+          //TODO Mandare notifica e mostrare nell'accordion
+        });
+      });
+
     });
+  }
+
+  private _showToast(title: string, body: string) {
+    const config = {
+      status: "warning",
+      destroyByClick: true,
+      duration: 2000,
+      hasIcon: true,
+      position: NbGlobalPhysicalPosition.TOP_RIGHT,
+      preventDuplicates: false,
+    };
+    const titleContent = title ? `. ${title}` : '';
+
+    this._toastrService.show(
+      body,
+      `Toast ${titleContent}`,
+      config);
   }
 
   //create searchCommand and execute the search
@@ -103,17 +138,14 @@ export class DashboardComponent implements OnInit {
     let dto: AlertDTO[] = [
       {
         query: "query1",
-        fileName: "Pippo.txt",
         alertDate: new Date(),
       },
       {
         query: "query2",
-        fileName: "Pluto.txt",
         alertDate: new Date(),
       },
       {
         query: "query3",
-        fileName: "Paperino.txt",
         alertDate: new Date(),
       },
     ]

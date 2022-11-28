@@ -4,12 +4,16 @@ import {Router} from "@angular/router";
 import {SearchService} from "../api/services/search.service";
 import {HistoryResponseDTO, QueryOccurancy} from "../api/model/search.model";
 import {Observable, of} from "rxjs";
+import {ChartData} from "../../infrastructure/template-components/charts/echarts/echarts-pie.component";
 
 @Component({
   selector: 'ngx-ecommerce',
   templateUrl: './e-commerce.component.html',
 })
 export class ECommerceComponent {
+
+  public legend:string[]=[];
+  public data:ChartData[]=[];
 
   //result from query
   public result: QueryOccurancy[] = [];
@@ -24,7 +28,10 @@ export class ECommerceComponent {
   }
 
   ngOnInit(): void {
-
+    this._mockupHistory().subscribe(response=> {
+      this.legend = response.result.map(q=>q.query);
+      this.data = response.result.map(q=>new ChartData(q.query, q.occurancy))
+    });
   }
 
 

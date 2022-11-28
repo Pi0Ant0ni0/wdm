@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy } from '@angular/core';
+import {AfterViewInit, Component, Input, OnDestroy} from '@angular/core';
 import { NbThemeService } from '@nebular/theme';
 
 @Component({
@@ -8,6 +8,10 @@ import { NbThemeService } from '@nebular/theme';
   `,
 })
 export class EchartsPieComponent implements AfterViewInit, OnDestroy {
+
+  @Input()legend:string[]=[];
+  @Input()data:ChartData[]=[];
+
   options: any = {};
   themeSubscription: any;
 
@@ -30,24 +34,18 @@ export class EchartsPieComponent implements AfterViewInit, OnDestroy {
         legend: {
           orient: 'vertical',
           left: 'left',
-          data: ['USA', 'Germany', 'France', 'Canada', 'Russia'],
+          data: this.legend,
           textStyle: {
             color: echarts.textColor,
           },
         },
         series: [
           {
-            name: 'Countries',
+            name: 'Ricerca',
             type: 'pie',
             radius: '80%',
             center: ['50%', '50%'],
-            data: [
-              { value: 335, name: 'Germany' },
-              { value: 310, name: 'France' },
-              { value: 234, name: 'Canada' },
-              { value: 135, name: 'Russia' },
-              { value: 1548, name: 'USA' },
-            ],
+            data: this.data,
             itemStyle: {
               emphasis: {
                 shadowBlur: 10,
@@ -77,5 +75,17 @@ export class EchartsPieComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.themeSubscription.unsubscribe();
+  }
+}
+
+export class ChartData {
+
+  public name:string;
+  public value:number;
+
+
+  constructor(name: string, value: number) {
+    this.name = name;
+    this.value = value;
   }
 }

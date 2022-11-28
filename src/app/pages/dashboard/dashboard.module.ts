@@ -7,7 +7,7 @@ import {
 import {
   IMqttMessage,
   MqttModule,
-  IMqttServiceOptions
+  IMqttServiceOptions, MqttService
 } from 'ngx-mqtt';
 import { DashboardComponent } from './dashboard.component';
 import {SearchService} from "../api/services/search.service";
@@ -18,8 +18,14 @@ import {environment} from "../../../environments/environment";
 export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
   hostname: environment.mqttHostName,
   port: environment.port,
-  path: ''
+  protocol: "wss",
+  clean: environment.clean, // Retain session
+  connectTimeout: environment.connectTimeout, // Timeout period
+  reconnectPeriod: environment.reconnectPeriod, // Reconnect period
+  clientId: environment.clientId,
+  path: environment.path
 };
+
 
 @NgModule({
   imports: [
@@ -36,7 +42,8 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
 
   ],
   providers:[
-    SearchService
+    SearchService,
+    MqttService
   ]
 })
 export class DashboardModule { }
