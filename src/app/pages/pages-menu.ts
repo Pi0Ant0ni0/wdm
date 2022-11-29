@@ -4,12 +4,12 @@ export const MENU_ITEMS: NbMenuItem[] = [
   {
     title: 'Dashboard globale',
     icon: 'grid-outline',
-    link: '/pages/globale',
+    link: '/pages/global',
     home: true,
   },
   {
     title: 'Dashboard personale',
     icon: 'person-outline',
-    link: '/pages/personale',
+    link: '/pages/personal',
   },
 ];

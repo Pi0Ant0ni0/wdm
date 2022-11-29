@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
   NbGlobalPhysicalPosition,
-  NbMediaBreakpointsService,
+  NbMediaBreakpointsService, NbMenuBag,
   NbMenuService,
   NbSidebarService,
   NbThemeService, NbToastrService
@@ -14,6 +14,7 @@ import {Observable, of, Subject} from 'rxjs';
 import {IMqttMessage, MqttService} from "ngx-mqtt";
 import {AlertDTO} from "../../../../pages/api/model/alert.model";
 import {Router} from "@angular/router";
+import {OAuthService} from "angular-oauth2-oidc";
 
 
 @Component({
@@ -65,15 +66,23 @@ export class HeaderComponent implements OnInit, OnDestroy {
   public alerts: AlertDTO[] = [];
 
   constructor(private sidebarService: NbSidebarService,
-              private menuService: NbMenuService,
+              private _menuService: NbMenuService,
               private themeService: NbThemeService,
               private userService: UserData,
               private layoutService: LayoutService,
               private breakpointService: NbMediaBreakpointsService,
               private _toastrService:NbToastrService,
               private _mqttService:MqttService,
+              private _oauthService:OAuthService,
               private _router: Router
               ) {
+    this._menuService.onItemClick().subscribe((result:NbMenuBag)=>{
+      if(result.item){
+        if(result.item.title==this.userMenu[1].title){
+          this._oauthService.logOut();
+        }
+      }
+    });
   }
 
   ngOnInit() {
@@ -113,7 +122,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   public resetAlertStatus(){
-    this._router.navigate(["/pages/personale"]);
+    this._router.navigate(["/pages/personal"]);
     this.newAlert=false;
   }
 
@@ -171,7 +180,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   navigateHome() {
-    this.menuService.navigateHome();
+    this._menuService.navigateHome();
     return false;
   }
 }

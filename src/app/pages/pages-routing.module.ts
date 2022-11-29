@@ -11,11 +11,11 @@ const routes: Routes = [{
   component: PagesComponent,
   children: [
     {
-      path: 'globale',
+      path: 'global',
       component: ECommerceComponent,
     },
     {
-      path: 'personale',
+      path: 'personal',
       component: DashboardComponent,
     },
     {
@@ -70,7 +70,7 @@ const routes: Routes = [{
     },
     {
       path: '',
-      redirectTo: 'dashboard',
+      redirectTo: 'global',
       pathMatch: 'full',
     },
     {

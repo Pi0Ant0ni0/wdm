@@ -23,7 +23,7 @@ export class ECommerceComponent {
               private _router:Router) {
     this._searchService.onSearchSubmit().subscribe((result)=>{
       let param ={ search:result.term};
-      this._router.navigate(["/pages/personale"],{queryParams:param});
+      this._router.navigate(["/pages/personal"],{queryParams:param});
     });
   }
 
