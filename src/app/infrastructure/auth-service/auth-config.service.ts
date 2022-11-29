@@ -1,29 +1,45 @@
 import { Injectable } from '@angular/core';
 import { AuthConfig, NullValidationHandler, OAuthService } from 'angular-oauth2-oidc';
-import { filter } from 'rxjs/operators';
+import {filter, map} from 'rxjs/operators';
+import {from, Observable} from "rxjs";
+import {Profile} from "../model/auth.model";
+import jwtDecode from "jwt-decode";
 
 @Injectable()
 export class AuthConfigService {
 
-  private _decodedAccessToken: any;
-  private _decodedIDToken: any;
+  private _decodedAccessToken: string;
+  private _decodedIDToken: string;
   get decodedAccessToken() { return this._decodedAccessToken; }
   get decodedIDToken() { return this._decodedIDToken; }
 
   constructor(
-    private readonly oauthService: OAuthService,
+    private readonly _oauthService: OAuthService,
     private readonly authConfig: AuthConfig
   ) {}
+
+  public getProfile = (): Observable<Profile> => {
+    return from(this._oauthService.loadUserProfile()).pipe(map((result: any) => {
+      let decoded = <any>jwtDecode(this._oauthService.getAccessToken());
+      const ret = new Profile();
+      ret.email = result.info.email;
+      ret.name = result.info.given_name;
+      ret.surname = result.info.family_name;
+      ret.userId = result.info.sub;
+      ret.role= decoded.realm_access.roles?decoded.realm_access.roles[0]:"";
+      return ret;
+    }));
+  }
 
   async initAuth(): Promise<any> {
     return new Promise<void>((resolveFn, rejectFn) => {
       // setup oauthService
-      this.oauthService.configure(this.authConfig);
-      this.oauthService.setStorage(localStorage);
-      this.oauthService.tokenValidationHandler = new NullValidationHandler();
+      this._oauthService.configure(this.authConfig);
+      this._oauthService.setStorage(localStorage);
+      this._oauthService.tokenValidationHandler = new NullValidationHandler();
 
       // subscribe to token events
-      this.oauthService.events
+      this._oauthService.events
         .pipe(filter((e: any) => {
           return e.type === 'token_received';
         }))
@@ -31,12 +47,12 @@ export class AuthConfigService {
 
       // continue initializing app or redirect to login-page
 
-      this.oauthService.loadDiscoveryDocumentAndLogin().then(isLoggedIn => {
+      this._oauthService.loadDiscoveryDocumentAndLogin().then(isLoggedIn => {
         if (isLoggedIn) {
-          this.oauthService.setupAutomaticSilentRefresh();
+          this._oauthService.setupAutomaticSilentRefresh();
           resolveFn();
         } else {
-          this.oauthService.initImplicitFlow();
+          this._oauthService.initImplicitFlow();
           rejectFn();
         }
       });
@@ -45,8 +61,12 @@ export class AuthConfigService {
   }
 
   private handleNewToken() {
-    this._decodedAccessToken = this.oauthService.getAccessToken();
-    this._decodedIDToken = this.oauthService.getIdToken();
+    this._decodedAccessToken = this._oauthService.getAccessToken();
+    this._decodedIDToken = this._oauthService.getIdToken();
+  }
+
+  public logout(){
+    this._oauthService.logOut();
   }
 
 }

@@ -13,6 +13,7 @@ import {SessionService} from "../api/services/session.service";
 import {
   MqttService,
 } from 'ngx-mqtt';
+import {AuthConfigService} from "../../infrastructure/auth-service/auth-config.service";
 
 @Component({
   selector: 'ngx-dashboard',
@@ -36,6 +37,7 @@ export class DashboardComponent implements OnInit {
               //private _profileService: ProfileService,
               private _mqttService: MqttService,
               private _toastrService: NbToastrService,
+              private _oauthService: AuthConfigService
   ) {
     this._searchService.onSearchSubmit().subscribe((result) => {
       let query = result.term

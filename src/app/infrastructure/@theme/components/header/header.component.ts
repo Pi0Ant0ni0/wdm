@@ -1,5 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {
+  NbDialogService,
   NbGlobalPhysicalPosition,
   NbMediaBreakpointsService, NbMenuBag,
   NbMenuService,
@@ -7,15 +8,19 @@ import {
   NbThemeService, NbToastrService
 } from '@nebular/theme';
 
-import { UserData } from '../../../@core/data/users';
-import { LayoutService } from '../../../@core/utils';
-import { map, takeUntil } from 'rxjs/operators';
+import {LayoutService} from '../../../@core/utils';
+import {map, takeUntil} from 'rxjs/operators';
 import {Observable, of, Subject} from 'rxjs';
 import {IMqttMessage, MqttService} from "ngx-mqtt";
 import {AlertDTO} from "../../../../pages/api/model/session.model";
 import {Router} from "@angular/router";
-import {OAuthService} from "angular-oauth2-oidc";
 import {Search} from "../../../../pages/api/model/search.model";
+import {Profile} from "../../../model/auth.model";
+import {AuthConfigService} from "../../../auth-service/auth-config.service";
+import {
+  ShowcaseDialogComponent
+} from "../../../template-components/modal-overlays/dialog/showcase-dialog/showcase-dialog.component";
+import {UserDetailsComponent} from "./user-details/user-details.component";
 
 
 @Component({
@@ -26,8 +31,7 @@ import {Search} from "../../../../pages/api/model/search.model";
 export class HeaderComponent implements OnInit, OnDestroy {
 
   private destroy$: Subject<void> = new Subject<void>();
-  userPictureOnly: boolean = true;
-  user: any;
+  public profile: Profile;
   /**
    * List of thees that can be chosen by the user
    * */
@@ -56,11 +60,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
   public currentTheme = 'default';
 
 
-  userMenu = [ { title: 'Profile' }, { title: 'Log out' } ];
+  userMenu = [{title: 'Profile'}, {title: 'Log out'}];
   /**
    * Set notification un dumbel action
    * */
-  public newAlert:boolean = true;
+  public newAlert: boolean = false;
   /**
    * All alerts configured by the user
    * */
@@ -75,78 +79,92 @@ export class HeaderComponent implements OnInit, OnDestroy {
   constructor(private sidebarService: NbSidebarService,
               private _menuService: NbMenuService,
               private themeService: NbThemeService,
-              private userService: UserData,
               private layoutService: LayoutService,
-              private breakpointService: NbMediaBreakpointsService,
-              private _toastrService:NbToastrService,
-              private _mqttService:MqttService,
-              private _oauthService:OAuthService,
-              private _router: Router
-              ) {
-    this._menuService.onItemClick().subscribe((result:NbMenuBag)=>{
-      if(result.item){
-        if(result.item.title==this.userMenu[1].title){
-          this._oauthService.logOut();
-        }
-      }
-    });
+              private _toastrService: NbToastrService,
+              private _mqttService: MqttService,
+              private _router: Router,
+              private _authService: AuthConfigService,
+              private _dialogService: NbDialogService
+  ) {
   }
 
   ngOnInit() {
-    this.currentTheme = this.themeService.currentTheme;
+    /**
+     * get user profile in order to load all the page
+     * */
+    this._authService.getProfile().subscribe((profile: Profile) => {
 
-    this.userService.getUsers()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((users: any) => this.user = users.nick);
+      this.currentTheme = this.themeService.currentTheme;
+      this.profile = profile;
 
-    const { xl } = this.breakpointService.getBreakpointsMap();
-    this.themeService.onMediaQueryChange()
-      .pipe(
-        map(([, currentBreakpoint]) => currentBreakpoint.width < xl),
-        takeUntil(this.destroy$),
-      )
-      .subscribe((isLessThanXl: boolean) => this.userPictureOnly = isLessThanXl);
-
-    this.themeService.onThemeChange()
-      .pipe(
-        map(({ name }) => name),
-        takeUntil(this.destroy$),
-      )
-      .subscribe(themeName => this.currentTheme = themeName);
-
-
-
-    this._mockupAlerts("userId").subscribe(result => {
-      this.alerts = result;
-      this.alerts.forEach(a => {
-        this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
-          this._showToast("Nuovo breach", "Alert: " +a.query);
-          this.newAlert=true;
-          let search: Search = new Search(
-            JSON.parse(message.payload.toString()).title,
-            JSON.parse(message.payload.toString()).date,
-            JSON.parse(message.payload.toString()).media,
-            JSON.parse(message.payload.toString()).category,
-          );
-
-          if(this.alertsMap.get(a.query) == undefined){
-            this.alertsMap.set(a.query, []);
-            this.alertsMap.get(a.query).push(search);
-          }
-          else{
-            this.alertsMap.get(a.query).push(search);
+      /**
+       * subscribing to logout event, when is clicked trigger logout
+       * subscribing to profile event when is clicked show a dialog with profile data
+       * */
+      this._menuService.onItemClick().subscribe((result: NbMenuBag) => {
+        if (result.item) {
+          if (result.item.title == this.userMenu[1].title) {
+            this._authService.logout();
           }
 
-          //TODO Mandare notifica e mostrare nell'accordion
+          if (result.item.title == this.userMenu[0].title) {
+            this._dialogService.open(UserDetailsComponent, {
+              context: {
+                title: 'Dettaglio Utente',
+                description: `
+              Nome: ${this.profile.name}
+              Cognome: ${this.profile.surname}
+              Email: ${this.profile.email}
+              Ruolo: ${this.profile.role}
+              `
+              },
+            });
+
+          }
+        }
+      });
+
+      this.themeService.onThemeChange()
+        .pipe(
+          map(({name}) => name),
+          takeUntil(this.destroy$),
+        )
+        .subscribe(themeName => this.currentTheme = themeName);
+
+
+      this._mockupAlerts("userId").subscribe(result => {
+        this.alerts = result;
+        this.alerts.forEach(a => {
+          this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
+            this._showToast("Nuovo breach", "Alert: " + a.query);
+            this.newAlert = true;
+            let search: Search = new Search(
+              JSON.parse(message.payload.toString()).title,
+              JSON.parse(message.payload.toString()).date,
+              JSON.parse(message.payload.toString()).media,
+              JSON.parse(message.payload.toString()).category,
+            );
+
+            if (this.alertsMap.get(a.query) == undefined) {
+              this.alertsMap.set(a.query, []);
+              this.alertsMap.get(a.query).push(search);
+            } else {
+              this.alertsMap.get(a.query).push(search);
+            }
+
+            //TODO Mandare notifica e mostrare nell'accordion
+          });
         });
+
       });
 
     });
+
   }
 
-  public resetAlertStatus(){
+  public resetAlertStatus() {
     this._router.navigate(["/pages/personal"]);
-    this.newAlert=false;
+    this.newAlert = false;
   }
 
   //just for test purpose
