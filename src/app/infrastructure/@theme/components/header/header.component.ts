@@ -12,9 +12,10 @@ import { LayoutService } from '../../../@core/utils';
 import { map, takeUntil } from 'rxjs/operators';
 import {Observable, of, Subject} from 'rxjs';
 import {IMqttMessage, MqttService} from "ngx-mqtt";
-import {AlertDTO} from "../../../../pages/api/model/alert.model";
+import {AlertDTO} from "../../../../pages/api/model/session.model";
 import {Router} from "@angular/router";
 import {OAuthService} from "angular-oauth2-oidc";
+import {Search} from "../../../../pages/api/model/search.model";
 
 
 @Component({
@@ -25,7 +26,7 @@ import {OAuthService} from "angular-oauth2-oidc";
 export class HeaderComponent implements OnInit, OnDestroy {
 
   private destroy$: Subject<void> = new Subject<void>();
-  userPictureOnly: boolean = false;
+  userPictureOnly: boolean = true;
   user: any;
   /**
    * List of thees that can be chosen by the user
@@ -64,6 +65,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
    * All alerts configured by the user
    * */
   public alerts: AlertDTO[] = [];
+
+  /**
+   *
+   * Map between query and mqqtMessage
+   */
+  public alertsMap: Map<string, Search[]>;
 
   constructor(private sidebarService: NbSidebarService,
               private _menuService: NbMenuService,
@@ -108,12 +115,28 @@ export class HeaderComponent implements OnInit, OnDestroy {
       .subscribe(themeName => this.currentTheme = themeName);
 
 
+
     this._mockupAlerts("userId").subscribe(result => {
       this.alerts = result;
       this.alerts.forEach(a => {
         this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
-          this._showToast("Nuovo breach", JSON.parse(message.payload.toString()).title);
+          this._showToast("Nuovo breach", "Alert: " +a.query);
           this.newAlert=true;
+          let search: Search = new Search(
+            JSON.parse(message.payload.toString()).title,
+            JSON.parse(message.payload.toString()).date,
+            JSON.parse(message.payload.toString()).media,
+            JSON.parse(message.payload.toString()).category,
+          );
+
+          if(this.alertsMap.get(a.query) == undefined){
+            this.alertsMap.set(a.query, []);
+            this.alertsMap.get(a.query).push(search);
+          }
+          else{
+            this.alertsMap.get(a.query).push(search);
+          }
+
           //TODO Mandare notifica e mostrare nell'accordion
         });
       });

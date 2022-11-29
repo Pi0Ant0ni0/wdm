@@ -18,6 +18,13 @@ export class Search{
   public date:Date;
   public media:string;
   public category:string;
+
+  constructor(title: string, date: Date, media: string, category: string) {
+    this.title = title;
+    this.date = date;
+    this.media = media;
+    this.category = category;
+  }
 }
 
 export class SearchScheduleCommand{

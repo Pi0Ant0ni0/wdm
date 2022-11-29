@@ -3,10 +3,10 @@ export const basePath ="http://localhost:8080/wdm";
 export const environment = {
   keycloak: {
     // Url of the Identity Provider
-    issuer: 'http://localhost:8080/realms/DWMonitor',
+    issuer: 'http://192.168.2.2:8080/realms/DWMonitor',
 
     // URL of the SPA to redirect the user to after login
-    redirectUri: "http://localhost:4200",
+    redirectUri: "http://127.0.0.1:4200",
 
     // The SPA's id.
     // The SPA is registerd with this id at the auth-serverß
@@ -25,7 +25,7 @@ export const environment = {
   },
   production: false,
   //TODO modifica il path
-  gateway: "http://127.0.0.1:8080/wm",
+  gateway: "http://192.168.2.2:8080/wm",
   mqttHostName: "test.mosquitto.org",
   port: 8081,
   clean: true, // Retain session

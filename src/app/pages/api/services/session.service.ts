@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import {HttpService} from "../../../infrastructure/services/http.service";
 import {Observable} from "rxjs";
 import {environment} from "../../../../environments/environment";
-import {AlertDTO} from "../model/alert.model";
+import {AlertDTO} from "../model/session.model";
 import {SearchScheduleCommand} from "../model/search.model";
 
 @Injectable({

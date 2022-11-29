@@ -7,7 +7,7 @@ import {SearchService} from "../api/services/search.service";
 import {Search, SearchScheduleCommand, SearchScheduleResponseDTO} from "../api/model/search.model";
 import {Observable, of, Subscription} from "rxjs";
 import {ActivatedRoute} from "@angular/router";
-import {AlertDTO} from "../api/model/alert.model";
+import {AlertDTO} from "../api/model/session.model";
 import {SessionService} from "../api/services/session.service";
 
 import {
@@ -24,6 +24,8 @@ export class DashboardComponent implements OnInit {
   public result: Search[] = [];
   //alerts
   public alerts: AlertDTO[] = [];
+
+  public alertsMap: Map<string, Search>;
 
   public message: string;
 
@@ -69,23 +71,6 @@ export class DashboardComponent implements OnInit {
 
     });
   }
-
-  // private _showToast(title: string, body: string) {
-  //   const config = {
-  //     status: "warning",
-  //     destroyByClick: true,
-  //     duration: 2000,
-  //     hasIcon: true,
-  //     position: NbGlobalPhysicalPosition.TOP_RIGHT,
-  //     preventDuplicates: false,
-  //   };
-  //   const titleContent = title ? `. ${title}` : '';
-  //
-  //   this._toastrService.show(
-  //     body,
-  //     `Toast ${titleContent}`,
-  //     config);
-  // }
 
   //create searchCommand and execute the search
   private _makeSearch = (query: string): void => {
