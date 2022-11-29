@@ -1,15 +1,27 @@
 export const basePath ="http://localhost:8080/wdm";
 
 export const environment = {
-  authentication: {
-    issuer: `${basePath}/auth/realms/kiranet`,
-    silentRefreshRedirectUri: "/assets/authentication/silent-refresh.html",
-    clientId: "frontend",
-    responseType: "code",
-    scope: "openid profile roles phone address",
-    redirectUri: null,
-    postLogoutRedirectUri: null,
+  keycloak: {
+    // Url of the Identity Provider
+    issuer: 'http://localhost:8080/realms/DWMonitor',
 
+    // URL of the SPA to redirect the user to after login
+    redirectUri: "http://localhost:4200",
+
+    // The SPA's id.
+    // The SPA is registerd with this id at the auth-serverß
+    clientId: 'dwmonitor-client',
+
+    responseType: 'code',
+    // set the scope for the permissions the client should request
+    // The first three are defined by OIDC.
+    scope: 'openid profile email',
+    // Remove the requirement of using Https to simplify the demo
+    requireHttps: false,
+    // at_hash is not present in JWT token
+    showDebugInformation: true,
+    disableAtHashCheck: true,
+    post_logout_redirect_uri:"http://localhost:4200"
   },
   production: false,
   //TODO modifica il path
