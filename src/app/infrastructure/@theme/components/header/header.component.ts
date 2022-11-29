@@ -1,10 +1,20 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { NbMediaBreakpointsService, NbMenuService, NbSidebarService, NbThemeService } from '@nebular/theme';
+import {
+  NbGlobalPhysicalPosition,
+  NbMediaBreakpointsService,
+  NbMenuService,
+  NbSidebarService,
+  NbThemeService, NbToastrService
+} from '@nebular/theme';
 
 import { UserData } from '../../../@core/data/users';
 import { LayoutService } from '../../../@core/utils';
 import { map, takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import {Observable, of, Subject} from 'rxjs';
+import {IMqttMessage, MqttService} from "ngx-mqtt";
+import {AlertDTO} from "../../../../pages/api/model/alert.model";
+import {Router} from "@angular/router";
+
 
 @Component({
   selector: 'ngx-header',
@@ -16,8 +26,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private destroy$: Subject<void> = new Subject<void>();
   userPictureOnly: boolean = false;
   user: any;
-
-  themes = [
+  /**
+   * List of thees that can be chosen by the user
+   * */
+  public themes = [
     {
       value: 'default',
       name: 'Light',
@@ -36,16 +48,32 @@ export class HeaderComponent implements OnInit, OnDestroy {
     },
   ];
 
-  currentTheme = 'default';
+  /**
+   * theme chosen by the user
+   * */
+  public currentTheme = 'default';
+
 
   userMenu = [ { title: 'Profile' }, { title: 'Log out' } ];
+  /**
+   * Set notification un dumbel action
+   * */
+  public newAlert:boolean = true;
+  /**
+   * All alerts configured by the user
+   * */
+  public alerts: AlertDTO[] = [];
 
   constructor(private sidebarService: NbSidebarService,
               private menuService: NbMenuService,
               private themeService: NbThemeService,
               private userService: UserData,
               private layoutService: LayoutService,
-              private breakpointService: NbMediaBreakpointsService) {
+              private breakpointService: NbMediaBreakpointsService,
+              private _toastrService:NbToastrService,
+              private _mqttService:MqttService,
+              private _router: Router
+              ) {
   }
 
   ngOnInit() {
@@ -69,7 +97,62 @@ export class HeaderComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
       )
       .subscribe(themeName => this.currentTheme = themeName);
+
+
+    this._mockupAlerts("userId").subscribe(result => {
+      this.alerts = result;
+      this.alerts.forEach(a => {
+        this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
+          this._showToast("Nuovo breach", JSON.parse(message.payload.toString()).title);
+          this.newAlert=true;
+          //TODO Mandare notifica e mostrare nell'accordion
+        });
+      });
+
+    });
   }
+
+  public resetAlertStatus(){
+    this._router.navigate(["/pages/personale"]);
+    this.newAlert=false;
+  }
+
+  //just for test purpose
+  private _mockupAlerts = (userId: string): Observable<AlertDTO[]> => {
+    let dto: AlertDTO[] = [
+      {
+        query: "query1",
+        alertDate: new Date(),
+      },
+      {
+        query: "query2",
+        alertDate: new Date(),
+      },
+      {
+        query: "query3",
+        alertDate: new Date(),
+      },
+    ]
+    return of(dto);
+  }
+
+  private _showToast(title: string, body: string) {
+    const config = {
+      status: "warning",
+      destroyByClick: true,
+      duration: 2000,
+      hasIcon: true,
+      position: NbGlobalPhysicalPosition.TOP_RIGHT,
+      preventDuplicates: false,
+    };
+    const titleContent = title ? `. ${title}` : '';
+
+    this._toastrService.show(
+      body,
+      `Toast ${titleContent}`,
+      config);
+  }
+
 
   ngOnDestroy() {
     this.destroy$.next();

@@ -1,8 +1,5 @@
 import {Component, OnInit} from '@angular/core';
 import {
-  NbComponentStatus,
-  NbGlobalPhysicalPosition,
-  NbGlobalPosition,
   NbSearchService,
   NbToastrService
 } from '@nebular/theme';
@@ -14,15 +11,8 @@ import {AlertDTO} from "../api/model/alert.model";
 import {SessionService} from "../api/services/session.service";
 
 import {
-  IMqttMessage,
-  MqttModule,
-  IMqttServiceOptions,
   MqttService,
 } from 'ngx-mqtt';
-import {BreachService} from "../api/services/breach.service";
-import {ProfileService} from "../../infrastructure/services/profile.service";
-import {environment} from "../../../environments/environment";
-import {MQTT_SERVICE_OPTIONS} from "./dashboard.module";
 
 @Component({
   selector: 'ngx-dashboard',
@@ -35,8 +25,6 @@ export class DashboardComponent implements OnInit {
   //alerts
   public alerts: AlertDTO[] = [];
 
-  //servono per test MQTT
-  private subscription: Subscription;
   public message: string;
 
   constructor(private _activatedRoute: ActivatedRoute,
@@ -72,32 +60,32 @@ export class DashboardComponent implements OnInit {
     // });
     this._mockupAlerts("userId").subscribe(result => {
       this.alerts = result;
-      this.alerts.forEach(a => {
-        this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
-          this._showToast("Nuovo breach", JSON.parse(message.payload.toString()).title);
-          //TODO Mandare notifica e mostrare nell'accordion
-        });
+      this.alerts.forEach(()=> {
+        // this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
+        //   this._showToast("Nuovo breach", JSON.parse(message.payload.toString()).title);
+        //   //TODO Mandare notifica e mostrare nell'accordion
+        // });
       });
 
     });
   }
 
-  private _showToast(title: string, body: string) {
-    const config = {
-      status: "warning",
-      destroyByClick: true,
-      duration: 2000,
-      hasIcon: true,
-      position: NbGlobalPhysicalPosition.TOP_RIGHT,
-      preventDuplicates: false,
-    };
-    const titleContent = title ? `. ${title}` : '';
-
-    this._toastrService.show(
-      body,
-      `Toast ${titleContent}`,
-      config);
-  }
+  // private _showToast(title: string, body: string) {
+  //   const config = {
+  //     status: "warning",
+  //     destroyByClick: true,
+  //     duration: 2000,
+  //     hasIcon: true,
+  //     position: NbGlobalPhysicalPosition.TOP_RIGHT,
+  //     preventDuplicates: false,
+  //   };
+  //   const titleContent = title ? `. ${title}` : '';
+  //
+  //   this._toastrService.show(
+  //     body,
+  //     `Toast ${titleContent}`,
+  //     config);
+  // }
 
   //create searchCommand and execute the search
   private _makeSearch = (query: string): void => {
