@@ -22,11 +22,15 @@
 <div class="row">
   <div class="col-xxxl-9 col-xl-12">
     <nb-accordion multi>
-      <nb-accordion-item *ngFor="let alert of alerts">
+      <nb-accordion-item *ngFor="let alert of alertsMap | keyvalue">
         <nb-accordion-item-header>
-          {{alert.query}} {{alert.alertDate | date}}
+          {{alert.key}}
         </nb-accordion-item-header>
-        <nb-accordion-item-body>
+        <nb-accordion-item-body *ngFor="let alertValue of alert.value">
+          Titolo: {{alertValue.title}}
+          Data: {{alertValue.date}}
+          Media: {{alertValue.media}}
+          Categoria: {{alertValue.category}}
         </nb-accordion-item-body>
       </nb-accordion-item>
     </nb-accordion>

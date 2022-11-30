@@ -21,6 +21,7 @@ import {
   ShowcaseDialogComponent
 } from "../../../template-components/modal-overlays/dialog/showcase-dialog/showcase-dialog.component";
 import {UserDetailsComponent} from "./user-details/user-details.component";
+import {HeaderService} from "./header.service";
 
 
 @Component({
@@ -84,7 +85,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
               private _mqttService: MqttService,
               private _router: Router,
               private _authService: AuthConfigService,
-              private _dialogService: NbDialogService
+              private _dialogService: NbDialogService,
+              private _headerService: HeaderService,
   ) {
   }
 
@@ -151,7 +153,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
             } else {
               this.alertsMap.get(a.query).push(search);
             }
-
+            this._headerService.emitAlerts(this.alertsMap);
             //TODO Mandare notifica e mostrare nell'accordion
           });
         });

@@ -14,6 +14,7 @@ import {
   MqttService,
 } from 'ngx-mqtt';
 import {AuthConfigService} from "../../infrastructure/auth-service/auth-config.service";
+import {HeaderService} from "../../infrastructure/@theme/components/header/header.service";
 
 @Component({
   selector: 'ngx-dashboard',
@@ -26,7 +27,7 @@ export class DashboardComponent implements OnInit {
   //alerts
   public alerts: AlertDTO[] = [];
 
-  public alertsMap: Map<string, Search>;
+  public alertsMap: Map<string, Search[]>;
 
   public message: string;
 
@@ -37,7 +38,8 @@ export class DashboardComponent implements OnInit {
               //private _profileService: ProfileService,
               private _mqttService: MqttService,
               private _toastrService: NbToastrService,
-              private _oauthService: AuthConfigService
+              private _oauthService: AuthConfigService,
+              private _headerService: HeaderService
   ) {
     this._searchService.onSearchSubmit().subscribe((result) => {
       let query = result.term
@@ -55,6 +57,10 @@ export class DashboardComponent implements OnInit {
       if (searchQuery) {
         this._makeSearch(searchQuery);
       }
+    });
+
+    this._headerService.getAlerts().subscribe((result) => {
+      this.alertsMap = result;
     });
 
     // this._profileService.loadUserProfile().subscribe((user: Profile) => {
