@@ -5,7 +5,7 @@ import {
 } from '@nebular/theme';
 import {SearchService} from "../api/services/search.service";
 import {Search, SearchScheduleCommand, SearchScheduleResponseDTO} from "../api/model/search.model";
-import {Observable, of, Subscription} from "rxjs";
+import {Observable, of} from "rxjs";
 import {ActivatedRoute} from "@angular/router";
 import {AlertDTO} from "../api/model/session.model";
 import {SessionService} from "../api/services/session.service";
@@ -14,7 +14,7 @@ import {
   MqttService,
 } from 'ngx-mqtt';
 import {AuthConfigService} from "../../infrastructure/auth-service/auth-config.service";
-import {HeaderService} from "../../infrastructure/@theme/components/header/header.service";
+import {HttpService} from "../../infrastructure/base-service/http.service";
 
 @Component({
   selector: 'ngx-dashboard',
@@ -39,7 +39,7 @@ export class DashboardComponent implements OnInit {
               private _mqttService: MqttService,
               private _toastrService: NbToastrService,
               private _oauthService: AuthConfigService,
-              private _headerService: HeaderService
+              private _httpService:HttpService
   ) {
     this._searchService.onSearchSubmit().subscribe((result) => {
       let query = result.term
@@ -59,10 +59,6 @@ export class DashboardComponent implements OnInit {
       }
     });
 
-    this._headerService.getAlerts().subscribe((result) => {
-      this.alertsMap = result;
-    });
-
     // this._profileService.loadUserProfile().subscribe((user: Profile) => {
     //   this._sessionService.getAlertsByUserId(user.userId).subscribe((alerts: AlertDTO[]) => {
     //     this.alerts = alerts;
@@ -80,6 +76,25 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  /**
+   * download specified dump
+   * */
+  public download(searchItem:Search){
+    this._download(searchItem.title).subscribe(file=>{
+      let data = new Blob([file], { type: 'application/bin' });
+      let fileURL = URL.createObjectURL(data);
+      window.open(fileURL);
+    });
+
+    //TODO here we need to call gateway to download the dump
+  }
+
+  //mockupDownlaod
+  private  _download=(id:string):Observable<any>=>{
+    let downloadUrl="https://www.docdroid.net/file/download/XXgQpif/pre-covid-txt.txt";
+    return this._httpService.get(downloadUrl, null, {}, "blob");
+}
+
   //create searchCommand and execute the search
   private _makeSearch = (query: string): void => {
     let searchCommand: SearchScheduleCommand = new SearchScheduleCommand();
@@ -91,6 +106,7 @@ export class DashboardComponent implements OnInit {
   }
 
 
+
   //just for test purpose
   private _mockup = (query: string): Observable<SearchScheduleResponseDTO> => {
     let dto: SearchScheduleResponseDTO = {
@@ -99,13 +115,15 @@ export class DashboardComponent implements OnInit {
           title: "titolo1",
           category: "category1",
           date: new Date(),
-          media: "media"
+          media: "media",
+          hasFile:false,
         },
         {
           title: "titolo2",
           category: "category2",
           date: new Date(),
-          media: "media2"
+          media: "media2",
+          hasFile:true,
         },
       ],
       query: query,

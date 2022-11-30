@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {HttpService} from "../../../infrastructure/services/http.service";
+import {HttpService} from "../../../infrastructure/base-service/http.service";
 import {Observable} from "rxjs";
 import {environment} from "../../../../environments/environment";
 import {AlertDTO} from "../model/session.model";

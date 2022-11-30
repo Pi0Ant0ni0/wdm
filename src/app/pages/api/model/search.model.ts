@@ -18,6 +18,7 @@ export class Search{
   public date:Date;
   public media:string;
   public category:string;
+  public hasFile:boolean;
 
   constructor(title: string, date: Date, media: string, category: string) {
     this.title = title;
