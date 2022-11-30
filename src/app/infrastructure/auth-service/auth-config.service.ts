@@ -1,24 +1,24 @@
 import { Injectable } from '@angular/core';
 import { AuthConfig, NullValidationHandler, OAuthService } from 'angular-oauth2-oidc';
-import {filter, map} from 'rxjs/operators';
+import {map} from 'rxjs/operators';
 import {from, Observable} from "rxjs";
-import {Profile} from "../model/auth.model";
+import {Profile} from "./auth-model/auth.model";
 import jwtDecode from "jwt-decode";
 
 @Injectable()
 export class AuthConfigService {
 
-  private _decodedAccessToken: string;
-  private _decodedIDToken: string;
-  get decodedAccessToken() { return this._decodedAccessToken; }
-  get decodedIDToken() { return this._decodedIDToken; }
 
   constructor(
     private readonly _oauthService: OAuthService,
     private readonly authConfig: AuthConfig
   ) {}
 
-  public getProfile = (): Observable<Profile> => {
+
+  /**
+   * get user logged in
+   * */
+  public get profile (): Observable<Profile>{
     return from(this._oauthService.loadUserProfile()).pipe(map((result: any) => {
       let decoded = <any>jwtDecode(this._oauthService.getAccessToken());
       const ret = new Profile();
@@ -38,13 +38,6 @@ export class AuthConfigService {
       this._oauthService.setStorage(localStorage);
       this._oauthService.tokenValidationHandler = new NullValidationHandler();
 
-      // subscribe to token events
-      this._oauthService.events
-        .pipe(filter((e: any) => {
-          return e.type === 'token_received';
-        }))
-        .subscribe(() => this.handleNewToken());
-
       // continue initializing app or redirect to login-page
 
       this._oauthService.loadDiscoveryDocumentAndLogin().then(isLoggedIn => {
@@ -60,11 +53,23 @@ export class AuthConfigService {
     });
   }
 
-  private handleNewToken() {
-    this._decodedAccessToken = this._oauthService.getAccessToken();
-    this._decodedIDToken = this._oauthService.getIdToken();
+  /**
+   * check if user is authenticated
+   * */
+  public isAuthenticated = (): boolean => {
+    return this._oauthService.hasValidAccessToken();
   }
 
+  /**
+   * return access token to make request
+   * */
+  public get accessToken():string{
+    return this._oauthService.getAccessToken();
+  }
+
+  /**
+   * execute logout for current user
+   * */
   public logout(){
     this._oauthService.logOut();
   }

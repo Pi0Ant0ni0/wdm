@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {NbDialogRef} from "@nebular/theme";
 
 @Component({
@@ -6,18 +6,29 @@ import {NbDialogRef} from "@nebular/theme";
   templateUrl: './user-details.component.html',
   styleUrls: ['./user-details.component.scss']
 })
-export class UserDetailsComponent implements OnInit {
+export class UserDetailsComponent{
 
-  @Input() title: string;
-  @Input() description:string;
+  /**
+   * title of dialog
+   * */
+  @Input() public title: string;
+  /**
+   * content of dialog
+   * */
+  @Input() public description:string;
 
+  /**
+   * inject reference to dialog
+   * */
   constructor(protected ref: NbDialogRef<UserDetailsComponent>) {}
 
-  dismiss() {
+  /**
+   * callback to close the dialog
+   * mapped to a dialog dismiss button
+   * */
+  public dismiss() {
     this.ref.close();
   }
 
-  ngOnInit(): void {
-  }
 
 }

@@ -2,7 +2,7 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {
   NbDialogService,
   NbGlobalPhysicalPosition,
-  NbMediaBreakpointsService, NbMenuBag,
+  NbMenuBag,
   NbMenuService,
   NbSidebarService,
   NbThemeService, NbToastrService
@@ -15,11 +15,8 @@ import {IMqttMessage, MqttService} from "ngx-mqtt";
 import {AlertDTO} from "../../../../pages/api/model/session.model";
 import {Router} from "@angular/router";
 import {Search} from "../../../../pages/api/model/search.model";
-import {Profile} from "../../../model/auth.model";
+import {Profile} from "../../../auth-service/auth-model/auth.model";
 import {AuthConfigService} from "../../../auth-service/auth-config.service";
-import {
-  ShowcaseDialogComponent
-} from "../../../template-components/modal-overlays/dialog/showcase-dialog/showcase-dialog.component";
 import {UserDetailsComponent} from "./user-details/user-details.component";
 
 
@@ -31,6 +28,9 @@ import {UserDetailsComponent} from "./user-details/user-details.component";
 export class HeaderComponent implements OnInit, OnDestroy {
 
   private destroy$: Subject<void> = new Subject<void>();
+  /**
+   * user logged in
+   * */
   public profile: Profile;
   /**
    * List of thees that can be chosen by the user
@@ -92,7 +92,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     /**
      * get user profile in order to load all the page
      * */
-    this._authService.getProfile().subscribe((profile: Profile) => {
+    this._authService.profile.subscribe((profile: Profile) => {
 
       this.currentTheme = this.themeService.currentTheme;
       this.profile = profile;
@@ -112,10 +112,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
               context: {
                 title: 'Dettaglio Utente',
                 description: `
-              Nome: ${this.profile.name}
-              Cognome: ${this.profile.surname}
-              Email: ${this.profile.email}
-              Ruolo: ${this.profile.role}
+              <b>Nome:</b> ${this.profile.name}<br>
+              <b>Cognome:</b> ${this.profile.surname}<br>
+              <b>Email:</b> ${this.profile.email}<br>
+              <b>Ruolo:</b> ${this.profile.role}<br>
               `
               },
             });
