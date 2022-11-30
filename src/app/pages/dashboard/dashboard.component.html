@@ -7,9 +7,12 @@
           {{searchItem.title}}
         </nb-accordion-item-header>
         <nb-accordion-item-body>
-         Data: {{searchItem.date | date}}
-          Category: {{searchItem.category}}
-          Media: {{searchItem.media}}
+         <b>Data:</b> {{searchItem.date | date}}<br>
+          <b>Category:</b> {{searchItem.category}}<br>
+          <b>Media:</b> {{searchItem.media}}<br>
+          <div>
+            <button *ngIf="searchItem.hasFile" nbButton status="danger" style="float: right;" (click)="download(searchItem)">Scarica dump</button>
+          </div>
         </nb-accordion-item-body>
       </nb-accordion-item>
     </nb-accordion>
