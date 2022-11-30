@@ -15,6 +15,7 @@ import {
 } from 'ngx-mqtt';
 import {AuthConfigService} from "../../infrastructure/auth-service/auth-config.service";
 import {HttpService} from "../../infrastructure/base-service/http.service";
+import {HeaderService} from "../../infrastructure/@theme/components/header/header.service";
 
 @Component({
   selector: 'ngx-dashboard',
@@ -26,8 +27,11 @@ export class DashboardComponent implements OnInit {
   public result: Search[] = [];
   //alerts
   public alerts: AlertDTO[] = [];
+  //map of alert and alertsList
+  public alertsMap: Map<string, Search[]> = new Map();
 
-  public alertsMap: Map<string, Search[]>;
+  //latest alert i must highlight it
+  public latestAlertIdMap: Map<string, string> = new Map();
 
   public message: string;
 
@@ -35,11 +39,11 @@ export class DashboardComponent implements OnInit {
               private _searchService: NbSearchService,
               private _searchGateway: SearchService,
               private _sessionService: SessionService,
-              //private _profileService: ProfileService,
               private _mqttService: MqttService,
               private _toastrService: NbToastrService,
               private _oauthService: AuthConfigService,
-              private _httpService:HttpService
+              private _headerService: HeaderService,
+              private _httpService: HttpService
   ) {
     this._searchService.onSearchSubmit().subscribe((result) => {
       let query = result.term
@@ -51,7 +55,6 @@ export class DashboardComponent implements OnInit {
 
   //if there are search params from previous search we execute the search
   ngOnInit(): void {
-
     this._activatedRoute.queryParams.subscribe((params) => {
       let searchQuery = params["search"];
       if (searchQuery) {
@@ -59,14 +62,30 @@ export class DashboardComponent implements OnInit {
       }
     });
 
-    // this._profileService.loadUserProfile().subscribe((user: Profile) => {
-    //   this._sessionService.getAlertsByUserId(user.userId).subscribe((alerts: AlertDTO[]) => {
-    //     this.alerts = alerts;
-    //   });
-    // });
+    //retrieve latest alert
+    this._headerService.getAlerts().subscribe((latest: Map<string, string>) => {
+      for (let query of latest.keys()) {
+        if (! (this.latestAlertIdMap.has(query)) ) {
+          this._getAlertsMockupUpdated(query).subscribe(result => {
+            this.alertsMap.set(query, result);
+            this.latestAlertIdMap = latest;
+          });
+          break;
+        }
+        if (this.latestAlertIdMap.has(query) && this.latestAlertIdMap.get(query) != latest.get(query)) {
+          this._getAlertsMockupUpdated(query).subscribe(result => {
+            this.alertsMap.set(query, result);
+            this.latestAlertIdMap = latest;
+          });
+          break;
+        }
+      }
+
+    });
+
     this._mockupAlerts("userId").subscribe(result => {
       this.alerts = result;
-      this.alerts.forEach(()=> {
+      this.alerts.forEach(() => {
         // this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
         //   this._showToast("Nuovo breach", JSON.parse(message.payload.toString()).title);
         //   //TODO Mandare notifica e mostrare nell'accordion
@@ -77,11 +96,21 @@ export class DashboardComponent implements OnInit {
   }
 
   /**
+   * get last 5 alerts for that query
+   * */
+  public getAlerts(query: string): void {
+    this._getAlertsMockup(query).subscribe(alertList => {
+      this.alertsMap.set(query, alertList);
+    });
+  }
+
+
+  /**
    * download specified dump
    * */
-  public download(searchItem:Search){
-    this._download(searchItem.title).subscribe(file=>{
-      let data = new Blob([file], { type: 'application/bin' });
+  public download(searchItem: Search) {
+    this._download(searchItem.title).subscribe(file => {
+      let data = new Blob([file], {type: 'application/bin'});
       let fileURL = URL.createObjectURL(data);
       window.open(fileURL);
     });
@@ -90,10 +119,10 @@ export class DashboardComponent implements OnInit {
   }
 
   //mockupDownlaod
-  private  _download=(id:string):Observable<any>=>{
-    let downloadUrl="https://www.docdroid.net/file/download/XXgQpif/pre-covid-txt.txt";
+  private _download = (id: string): Observable<any> => {
+    let downloadUrl = "https://www.docdroid.net/file/download/XXgQpif/pre-covid-txt.txt";
     return this._httpService.get(downloadUrl, null, {}, "blob");
-}
+  }
 
   //create searchCommand and execute the search
   private _makeSearch = (query: string): void => {
@@ -106,24 +135,64 @@ export class DashboardComponent implements OnInit {
   }
 
 
+  //just for test purpose
+  private _getAlertsMockup = (query: string): Observable<Search[]> => {
+    let dto: Search[] = [
+      {
+        id: "id2",
+        title: "titolo2",
+        category: "category2",
+        date: new Date(),
+        media: "media2",
+        hasFile: true,
+      },
+    ];
+    return of(dto);
+  }
+
+  //just for test purpose
+  private _getAlertsMockupUpdated = (query: string): Observable<Search[]> => {
+    let dto: Search[] = [
+      {
+        id: "id1",
+        title: "titolo1",
+        category: "category1",
+        date: new Date(),
+        media: "media",
+        hasFile: false,
+      },
+      {
+        id: "id2",
+        title: "titolo2",
+        category: "category2",
+        date: new Date(),
+        media: "media2",
+        hasFile: true,
+      },
+    ];
+    return of(dto);
+  }
+
 
   //just for test purpose
   private _mockup = (query: string): Observable<SearchScheduleResponseDTO> => {
     let dto: SearchScheduleResponseDTO = {
       result: [
         {
+          id: "id1",
           title: "titolo1",
           category: "category1",
           date: new Date(),
           media: "media",
-          hasFile:false,
+          hasFile: false,
         },
         {
+          id: "id2",
           title: "titolo2",
           category: "category2",
           date: new Date(),
           media: "media2",
-          hasFile:true,
+          hasFile: true,
         },
       ],
       query: query,

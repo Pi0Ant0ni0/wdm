@@ -1,24 +1,21 @@
 import { Injectable } from '@angular/core';
 import {Observable, Subject} from "rxjs";
-import {Search} from "../../../../pages/api/model/search.model";
-import {AlertDTO} from "../../../../pages/api/model/session.model";
-import {environment} from "../../../../../environments/environment";
 
 @Injectable({
   providedIn: 'root'
 })
 export class HeaderService {
 
-  public alerts: Subject<Map<string, Search[]>> = new Subject<Map<string, Search[]>>();
+  public alerts: Subject<Map<string,string>> = new Subject<Map<string,string>>();
 
   constructor() { }
 
-  public getAlerts=():Observable<Map<string, Search[]>> =>{
+  public getAlerts=():Observable<Map<string,string>> =>{
     return this.alerts.asObservable();
 
   }
 
-  public emitAlerts=(params:Map<string, Search[]>):void =>{
+  public emitAlerts=(params:Map<string,string>):void =>{
     this.alerts.next(params);
   }
 

@@ -14,7 +14,6 @@ import {Observable, of, Subject} from 'rxjs';
 import {IMqttMessage, MqttService} from "ngx-mqtt";
 import {AlertDTO} from "../../../../pages/api/model/session.model";
 import {Router} from "@angular/router";
-import {Search} from "../../../../pages/api/model/search.model";
 import {Profile} from "../../../auth-service/auth-model/auth.model";
 import {AuthConfigService} from "../../../auth-service/auth-config.service";
 import {UserDetailsComponent} from "./user-details/user-details.component";
@@ -61,7 +60,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   public currentTheme = 'default';
 
 
-  userMenu = [{title: 'Profile'}, {title: 'Log out'}];
+  public userMenu = [{title: 'Profile'}, {title: 'Log out'}];
   /**
    * Set notification un dumbel action
    * */
@@ -75,7 +74,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
    *
    * Map between query and mqqtMessage
    */
-  public alertsMap: Map<string, Search[]>;
+  public latestAlert:Map<string,string>=new Map();
 
   constructor(private sidebarService: NbSidebarService,
               private _menuService: NbMenuService,
@@ -140,20 +139,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
           this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
             this._showToast("Nuovo breach", "Alert: " + a.query);
             this.newAlert = true;
-            let search: Search = new Search(
-              JSON.parse(message.payload.toString()).title,
-              JSON.parse(message.payload.toString()).date,
-              JSON.parse(message.payload.toString()).media,
-              JSON.parse(message.payload.toString()).category,
-            );
-
-            if (this.alertsMap.get(a.query) == undefined) {
-              this.alertsMap.set(a.query, []);
-              this.alertsMap.get(a.query).push(search);
-            } else {
-              this.alertsMap.get(a.query).push(search);
+            let notification = {
+              id: JSON.parse(message.payload.toString()).id,
+              query:JSON.parse(message.payload.toString()).query,
             }
-            this._headerService.emitAlerts(this.alertsMap);
+            this.latestAlert.set(notification.query,notification.id);
+            this._headerService.emitAlerts(this.latestAlert);
             //TODO Mandare notifica e mostrare nell'accordion
           });
         });
