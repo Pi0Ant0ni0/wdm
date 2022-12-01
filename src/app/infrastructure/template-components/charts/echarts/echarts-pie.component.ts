@@ -32,7 +32,7 @@ export class EchartsPieComponent implements AfterViewInit, OnDestroy {
           formatter: '{a} <br/>{b} : {c} ({d}%)',
         },
         legend: {
-          orient: 'vertical',
+          orient: 'horizontal',
           left: 'left',
           data: this.legend,
           textStyle: {

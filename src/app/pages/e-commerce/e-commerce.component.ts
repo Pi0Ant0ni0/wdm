@@ -40,16 +40,24 @@ export class ECommerceComponent {
     let dto: HistoryResponseDTO = {
       result: [
         {
-          query: "Achille",
+          query: "unisannio.it",
           occurancy: 4,
         },
         {
-          query: "Pio",
+          query: "google.it",
           occurancy: 6,
         },
         {
-          query: "Ermanno",
+          query: "vatican.va",
           occurancy: 2,
+        },
+        {
+          query: "aranzulla.it",
+          occurancy: 4,
+        },
+        {
+          query: "twitter.com",
+          occurancy: 1,
         },
       ],
     };

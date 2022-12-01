@@ -12,7 +12,7 @@ import {LayoutService} from '../../../@core/utils';
 import {map, takeUntil} from 'rxjs/operators';
 import {Observable, of, Subject} from 'rxjs';
 import {IMqttMessage, MqttService} from "ngx-mqtt";
-import {AlertDTO} from "../../../../pages/api/model/session.model";
+import {AlertDTO, SessionDTO} from "../../../../pages/api/model/session.model";
 import {Router} from "@angular/router";
 import {Profile} from "../../../auth-service/auth-model/auth.model";
 import {AuthConfigService} from "../../../auth-service/auth-config.service";
@@ -37,10 +37,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
    * */
   public themes = [
     {
-      value: 'default',
-      name: 'Light',
-    },
-    {
       value: 'dark',
       name: 'Dark',
     },
@@ -48,16 +44,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
       value: 'cosmic',
       name: 'Cosmic',
     },
-    {
-      value: 'corporate',
-      name: 'Corporate',
-    },
   ];
 
   /**
    * theme chosen by the user
    * */
-  public currentTheme = 'default';
+  public currentTheme = 'dark';
 
 
   public userMenu = [{title: 'Profile'}, {title: 'Log out'}];
@@ -87,6 +79,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
               private _dialogService: NbDialogService,
               private _headerService: HeaderService,
   ) {
+
   }
 
   ngOnInit() {
@@ -95,6 +88,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
      * */
     this._authService.profile.subscribe((profile: Profile) => {
 
+      this.themeService.changeTheme("dark");
       this.currentTheme = this.themeService.currentTheme;
       this.profile = profile;
 
@@ -120,7 +114,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
               `
               },
             });
-
           }
         }
       });
@@ -134,7 +127,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
 
       this._mockupAlerts("userId").subscribe(result => {
-        this.alerts = result;
+        this.alerts = result.alerts;
+        this.changeTheme(result.theme);
         this.alerts.forEach(a => {
           this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
             this._showToast("Nuovo breach", "Alert: " + a.query);
@@ -161,7 +155,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   //just for test purpose
-  private _mockupAlerts = (userId: string): Observable<AlertDTO[]> => {
+  private _mockupAlerts = (userId: string): Observable<SessionDTO> => {
     let dto: AlertDTO[] = [
       {
         query: "query1",
@@ -176,7 +170,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
         alertDate: new Date(),
       },
     ]
-    return of(dto);
+    let session: SessionDTO =
+      {
+        alerts:dto,
+        theme:"cosmic",
+      };
+    return of(session);
   }
 
   private _showToast(title: string, body: string) {
@@ -204,6 +203,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   changeTheme(themeName: string) {
     this.themeService.changeTheme(themeName);
+    this.currentTheme = this.themeService.currentTheme;
   }
 
   toggleSidebar(): boolean {

@@ -134,7 +134,6 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-
   //just for test purpose
   private _getAlertsMockup = (query: string): Observable<Search[]> => {
     let dto: Search[] = [

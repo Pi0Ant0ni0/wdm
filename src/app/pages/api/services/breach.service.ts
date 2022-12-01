@@ -11,15 +11,6 @@ export class BreachService {
 
   constructor(private _http: HttpService) { }
 
-
-  /**
-   * Test if breach is present on Telegram
-   * */
-  public breachIsPresent=(fileName:String):Observable<boolean>=>{
-    let url = `${environment.gateway}/breaches`;
-    return this._http.get(url,{query:fileName});
-  }
-
   /**
    * Download breach on Telegram
    * */
