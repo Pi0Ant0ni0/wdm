@@ -3,12 +3,12 @@ import {
   NbSearchService,
   NbToastrService
 } from '@nebular/theme';
-import {SearchService} from "../api/services/search.service";
-import {Search, SearchScheduleCommand, SearchScheduleResponseDTO} from "../api/model/search.model";
+import {SearchService} from "../../api/services/search.service";
+import {Search, SearchScheduleCommand, SearchScheduleResponseDTO} from "../../api/model/search.model";
 import {Observable, of} from "rxjs";
 import {ActivatedRoute} from "@angular/router";
-import {AlertDTO} from "../api/model/session.model";
-import {SessionService} from "../api/services/session.service";
+import {AlertDTO} from "../../api/model/session.model";
+import {SessionService} from "../../api/services/session.service";
 
 import {
   MqttService,
@@ -45,6 +45,7 @@ export class DashboardComponent implements OnInit {
               private _headerService: HeaderService,
               private _httpService: HttpService
   ) {
+    //subscribe to search event to make query
     this._searchService.onSearchSubmit().subscribe((result) => {
       let query = result.term
       this._makeSearch(query);
@@ -62,18 +63,23 @@ export class DashboardComponent implements OnInit {
       }
     });
 
+    /**
+     * get current alerts
+     * */
+    this.alerts=this._headerService.alert;
+
+    /**
+     * subscribe to alert update
+     * */
+    this._headerService.getCurrentAlerts().subscribe((alerts) => {
+      this.alerts = alerts;
+    });
+
     //retrieve latest alert
-    this._headerService.getAlerts().subscribe((latest: Map<string, string>) => {
+    this._headerService.getNewAlerts().subscribe((latest: Map<string, string>) => {
       for (let query of latest.keys()) {
-        if (! (this.latestAlertIdMap.has(query)) ) {
-          this._getAlertsMockupUpdated(query).subscribe(result => {
-            this.alertsMap.set(query, result);
-            this.latestAlertIdMap = latest;
-          });
-          break;
-        }
-        if (this.latestAlertIdMap.has(query) && this.latestAlertIdMap.get(query) != latest.get(query)) {
-          this._getAlertsMockupUpdated(query).subscribe(result => {
+        if (!(this.latestAlertIdMap.has(query)) || (this.latestAlertIdMap.has(query) && this.latestAlertIdMap.get(query) != latest.get(query))) {
+          this._alertListUpdate(query).subscribe(result => {
             this.alertsMap.set(query, result);
             this.latestAlertIdMap = latest;
           });
@@ -82,24 +88,13 @@ export class DashboardComponent implements OnInit {
       }
 
     });
-
-    this._mockupAlerts("userId").subscribe(result => {
-      this.alerts = result;
-      this.alerts.forEach(() => {
-        // this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
-        //   this._showToast("Nuovo breach", JSON.parse(message.payload.toString()).title);
-        //   //TODO Mandare notifica e mostrare nell'accordion
-        // });
-      });
-
-    });
   }
 
   /**
    * get last 5 alerts for that query
    * */
   public getAlerts(query: string): void {
-    this._getAlertsMockup(query).subscribe(alertList => {
+    this._alertsList(query).subscribe(alertList => {
       this.alertsMap.set(query, alertList);
     });
   }
@@ -110,62 +105,45 @@ export class DashboardComponent implements OnInit {
    * */
   public download(searchItem: Search) {
     this._download(searchItem.title).subscribe(file => {
-      let data = new Blob([file], {type: 'application/bin'});
-      let fileURL = URL.createObjectURL(data);
+      let data = new Blob([file], {type: 'application/bin'},);
+      let fileURL: string = URL.createObjectURL(data);
+      console.log(fileURL);
       window.open(fileURL);
     });
 
     //TODO here we need to call gateway to download the dump
   }
 
-  //mockupDownlaod
-  private _download = (id: string): Observable<any> => {
-    let downloadUrl = "https://www.docdroid.net/file/download/XXgQpif/pre-covid-txt.txt";
-    return this._httpService.get(downloadUrl, null, {}, "blob");
-  }
-
   //create searchCommand and execute the search
   private _makeSearch = (query: string): void => {
     let searchCommand: SearchScheduleCommand = new SearchScheduleCommand();
     searchCommand.query = query;
-    this._mockup(searchCommand.query).subscribe((response: SearchScheduleResponseDTO) => {
+    this._search(searchCommand).subscribe((response: SearchScheduleResponseDTO) => {
       //generare i rettangoli per ogni risposta
       this.result = response.result;
     });
   }
 
-  //just for test purpose
-  private _getAlertsMockup = (query: string): Observable<Search[]> => {
-    let dto: Search[] = [
-      {
-        id: "id2",
-        title: "titolo2",
-        category: "category2",
-        date: new Date(),
-        media: "media2",
-        hasFile: true,
-      },
-    ];
-    return of(dto);
-  }
 
-  //just for test purpose
-  private _getAlertsMockupUpdated = (query: string): Observable<Search[]> => {
+  /*
+  * Mockup come _alertList ma simula l'arrivo di un nuovo alert
+  * **/
+  private _alertListUpdate = (query: string): Observable<Search[]> => {
     let dto: Search[] = [
       {
         id: "id1",
-        title: "titolo1",
+        title: "unisannio segreteria",
         category: "category1",
         date: new Date(),
-        media: "media",
+        media: "txt",
         hasFile: false,
       },
       {
         id: "id2",
-        title: "titolo2",
+        title: "unisannio rettorato",
         category: "category2",
         date: new Date(),
-        media: "media2",
+        media: "txt",
         hasFile: true,
       },
     ];
@@ -173,49 +151,59 @@ export class DashboardComponent implements OnInit {
   }
 
 
-  //just for test purpose
-  private _mockup = (query: string): Observable<SearchScheduleResponseDTO> => {
+  /**
+   * Mockup per avere gli ultimi  5 search di questo alert (alertsList)
+   * */
+  private _alertsList = (query: string): Observable<Search[]> => {
+    let dto: Search[] = [
+      {
+        id: "id2",
+        title: "unisannio rettorato",
+        category: "category2",
+        date: new Date(),
+        media: "txt",
+        hasFile: true,
+      },
+    ];
+    return of(dto);
+  }
+
+
+  /**
+   * mockup download request to downlaoad a dump
+   * */
+  private _download = (fileId: string): Observable<any> => {
+    let downloadUrl = "https://doc-04-1g-docs.googleusercontent.com/docs/securesc/oihhfj0vpl33e1ar9ltv2duhii6m8gst/t1nv7k5n91bnumrjmak0l5alkl69gtq0/1669910625000/09767907814616499229/07478474742730928969Z/1sEzcuXre6bhJeiHScF3C_FCCf4lqefnv?e=download&uuid=67f14687-53d8-46d9-b0c5-a30609021911&nonce=dgff8me91um88&user=07478474742730928969Z&hash=5fn22qrtq2gvl2301t6pl8dn383buvn4";
+    return this._httpService.get(downloadUrl, null, {"Access-Control-Allow-Origin": "*"}, "blob");
+  }
+
+
+  /**
+   * mockup the search operation
+   * */
+  private _search = (command: SearchScheduleCommand): Observable<SearchScheduleResponseDTO> => {
     let dto: SearchScheduleResponseDTO = {
       result: [
         {
           id: "id1",
-          title: "titolo1",
-          category: "category1",
+          title: "CAM4",
+          category: "category",
           date: new Date(),
-          media: "media",
+          media: "txt",
           hasFile: false,
         },
         {
           id: "id2",
-          title: "titolo2",
-          category: "category2",
+          title: "Yahoo Data Breach (2017)",
+          category: "category",
           date: new Date(),
-          media: "media2",
+          media: ".dump",
           hasFile: true,
         },
       ],
-      query: query,
+      query: command.query,
       timestamp: new Date()
     };
-    return of(dto);
-  }
-
-  //just for test purpose
-  private _mockupAlerts = (userId: string): Observable<AlertDTO[]> => {
-    let dto: AlertDTO[] = [
-      {
-        query: "query1",
-        alertDate: new Date(),
-      },
-      {
-        query: "query2",
-        alertDate: new Date(),
-      },
-      {
-        query: "query3",
-        alertDate: new Date(),
-      },
-    ]
     return of(dto);
   }
 

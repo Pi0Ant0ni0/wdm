@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import {HttpService} from "../../../infrastructure/base-service/http.service";
+import {HttpService} from "../../infrastructure/base-service/http.service";
 import {Observable} from "rxjs";
-import {environment} from "../../../../environments/environment";
-import {AlertDTO} from "../model/session.model";
+import {environment} from "../../../environments/environment";
+import {SessionDTO, UpdateSessionCommand} from "../model/session.model";
 import {SearchScheduleCommand} from "../model/search.model";
 
 @Injectable({
@@ -20,6 +20,15 @@ export class SessionService {
     return this._http.post(url, command);
   }
 
+
+  /**
+   *Update session
+   * */
+  public updateSession=(userId:string,sessionCommand: UpdateSessionCommand):Observable<void>=>{
+    let url = `${environment.gateway}/sessions/${userId}`;
+    return this._http.put(url, sessionCommand);
+  }
+
   /**
    * Delete alert for the user specified
    * */
@@ -31,8 +40,8 @@ export class SessionService {
   /**
    * get alerts for the user specified
    * */
-  public getAlertsByUserId=(userId:string):Observable<AlertDTO[]>=>{
-    let url = `${environment.gateway}/sessions/${userId}/alerts`;
+  public getSession=(userId:string):Observable<SessionDTO>=>{
+    let url = `${environment.gateway}/sessions/${userId}`;
     return this._http.get(url);
   }
 }

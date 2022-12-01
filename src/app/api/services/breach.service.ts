@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import {HttpService} from "../../../infrastructure/base-service/http.service";
+import {HttpService} from "../../infrastructure/base-service/http.service";
 import {Observable} from "rxjs";
-import {environment} from "../../../../environments/environment";
+import {environment} from "../../../environments/environment";
 import {BreachDTO} from "../model/breach.model";
 
 @Injectable({

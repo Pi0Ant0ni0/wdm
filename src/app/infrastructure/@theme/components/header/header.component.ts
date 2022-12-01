@@ -9,10 +9,9 @@ import {
 } from '@nebular/theme';
 
 import {LayoutService} from '../../../@core/utils';
-import {map, takeUntil} from 'rxjs/operators';
 import {Observable, of, Subject} from 'rxjs';
 import {IMqttMessage, MqttService} from "ngx-mqtt";
-import {AlertDTO, SessionDTO} from "../../../../pages/api/model/session.model";
+import {AlertDTO, SessionDTO, UpdateSessionCommand} from "../../../../api/model/session.model";
 import {Router} from "@angular/router";
 import {Profile} from "../../../auth-service/auth-model/auth.model";
 import {AuthConfigService} from "../../../auth-service/auth-config.service";
@@ -66,7 +65,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
    *
    * Map between query and mqqtMessage
    */
-  public latestAlert:Map<string,string>=new Map();
+  public latestAlert: Map<string, string> = new Map();
 
   constructor(private sidebarService: NbSidebarService,
               private _menuService: NbMenuService,
@@ -88,8 +87,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
      * */
     this._authService.profile.subscribe((profile: Profile) => {
 
+      //set default theme
       this.themeService.changeTheme("dark");
       this.currentTheme = this.themeService.currentTheme;
+
+      //get logged user
       this.profile = profile;
 
       /**
@@ -118,28 +120,31 @@ export class HeaderComponent implements OnInit, OnDestroy {
         }
       });
 
-      this.themeService.onThemeChange()
-        .pipe(
-          map(({name}) => name),
-          takeUntil(this.destroy$),
-        )
-        .subscribe(themeName => this.currentTheme = themeName);
+      //subscribe to theme change to update session
+      this.themeService.onThemeChange().subscribe(themeName => {
+        this.currentTheme = themeName;
+        //update current session
+        this._updateSession(this.profile.userId,{theme:this.currentTheme}).subscribe();
+      });
 
 
-      this._mockupAlerts("userId").subscribe(result => {
-        this.alerts = result.alerts;
-        this.changeTheme(result.theme);
+      this._getSession("userId").subscribe(session => {
+        this.alerts = session.alerts;
+        //update alerts
+        this._headerService.emitCurrentAlerts(this.alerts);
+        //update theme
+        this.changeTheme(session.theme);
+        //subscribe to alert topic
         this.alerts.forEach(a => {
           this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
             this._showToast("Nuovo breach", "Alert: " + a.query);
             this.newAlert = true;
             let notification = {
               id: JSON.parse(message.payload.toString()).id,
-              query:JSON.parse(message.payload.toString()).query,
+              query: JSON.parse(message.payload.toString()).query,
             }
-            this.latestAlert.set(notification.query,notification.id);
+            this.latestAlert.set(notification.query, notification.id);
             this._headerService.emitAlerts(this.latestAlert);
-            //TODO Mandare notifica e mostrare nell'accordion
           });
         });
 
@@ -152,30 +157,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   public resetAlertStatus() {
     this._router.navigate(["/pages/personal"]);
     this.newAlert = false;
-  }
-
-  //just for test purpose
-  private _mockupAlerts = (userId: string): Observable<SessionDTO> => {
-    let dto: AlertDTO[] = [
-      {
-        query: "query1",
-        alertDate: new Date(),
-      },
-      {
-        query: "query2",
-        alertDate: new Date(),
-      },
-      {
-        query: "query3",
-        alertDate: new Date(),
-      },
-    ]
-    let session: SessionDTO =
-      {
-        alerts:dto,
-        theme:"cosmic",
-      };
-    return of(session);
   }
 
   private _showToast(title: string, body: string) {
@@ -201,7 +182,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  changeTheme(themeName: string) {
+  public changeTheme(themeName: string) {
     this.themeService.changeTheme(themeName);
     this.currentTheme = this.themeService.currentTheme;
   }
@@ -216,5 +197,40 @@ export class HeaderComponent implements OnInit, OnDestroy {
   navigateHome() {
     this._menuService.navigateHome();
     return false;
+  }
+
+
+  /**
+   * mockup for get session operation
+   * */
+  private _getSession = (userId: string): Observable<SessionDTO> => {
+    let dto: AlertDTO[] = [
+      {
+        query: "unisannio.it",
+        alertDate: new Date(),
+      },
+      {
+        query: "studenti.unisannio.it",
+        alertDate: new Date(),
+      },
+      {
+        query: "investireFacile.it",
+        alertDate: new Date(),
+      },
+    ]
+    let session: SessionDTO =
+      {
+        alerts: dto,
+        theme: "cosmic",
+      };
+    return of(session);
+  }
+
+  /**
+   * mockup for updateSession when changing theme
+   * */
+  private _updateSession=(userId:string, command:UpdateSessionCommand):Observable<void>=>{
+    console.log("theme changed");
+    return of();
   }
 }

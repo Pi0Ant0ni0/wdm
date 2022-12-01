@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import {NbSearchService} from "@nebular/theme";
 import {Router} from "@angular/router";
-import {SearchService} from "../api/services/search.service";
-import {HistoryResponseDTO, QueryOccurancy} from "../api/model/search.model";
+import {SearchService} from "../../api/services/search.service";
+import {HistoryResponseDTO, QueryOccurancy} from "../../api/model/search.model";
 import {Observable, of} from "rxjs";
 import {ChartData} from "../../infrastructure/template-components/charts/echarts/echarts-pie.component";
 

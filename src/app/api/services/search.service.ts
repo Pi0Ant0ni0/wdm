@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import {HttpService} from "../../../infrastructure/base-service/http.service";
+import {HttpService} from "../../infrastructure/base-service/http.service";
 import {Observable} from "rxjs";
 import {HistoryResponseDTO, SearchScheduleCommand, SearchScheduleResponseDTO} from "../model/search.model";
-import {environment} from "../../../../environments/environment";
+import {environment} from "../../../environments/environment";
 
 @Injectable({
   providedIn: 'root',
@@ -26,5 +26,24 @@ export class SearchService {
     let url = `${environment.gateway}/searches`;
     return this._http.get(url);
   }
+
+  /**
+   * download a dump
+   * */
+  private _download = (id: string): Observable<any> => {
+    let url = `${environment.gateway}/breaches/${id}`;
+    return this._http.get(url, null, {}, "blob");
+  }
+
+
+  /**
+   * FIXME il path va aggiustato non me lo ricordo
+   *Get latest 5 search for an alert
+   * */
+  public alertsList=(query:string):Observable<SearchScheduleResponseDTO>=>{
+    let url = `${environment.gateway}/searches/${query}`;
+    return this._http.get(url);
+  }
+
 
 }
