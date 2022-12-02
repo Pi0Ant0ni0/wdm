@@ -15,7 +15,7 @@ export class SessionService {
   /**
    * Add alert for the user specified
    * */
-  public addAlert=(userId:string, command: SearchScheduleCommand):Observable<void>=>{
+  public createAlert=(userId:string, command: SearchScheduleCommand):Observable<void>=>{
     let url = `${environment.gateway}/sessions/${userId}/alerts`;
     return this._http.post(url, command);
   }

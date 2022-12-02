@@ -23,6 +23,10 @@ import {HeaderService} from "../../infrastructure/@theme/components/header/heade
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
+
+  //search query
+  public query:string;
+
   //result from query
   public result: Search[] = [];
   //alerts
@@ -32,8 +36,6 @@ export class DashboardComponent implements OnInit {
 
   //latest alert i must highlight it
   public latestAlertIdMap: Map<string, string> = new Map();
-
-  public message: string;
 
   constructor(private _activatedRoute: ActivatedRoute,
               private _searchService: NbSearchService,
@@ -47,6 +49,7 @@ export class DashboardComponent implements OnInit {
   ) {
     //subscribe to search event to make query
     this._searchService.onSearchSubmit().subscribe((result) => {
+      this.query = result.term
       let query = result.term
       this._makeSearch(query);
 
@@ -124,6 +127,12 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  //create searchCommand and execute the search
+  public createAlert = (query: string): void => {
+    let searchCommand: SearchScheduleCommand = new SearchScheduleCommand();
+    searchCommand.query = query;
+    //qua bisogna chiamare il servizio reale di creazione dell'alert presente in session.service.ts
+  }
 
   /*
   * Mockup come _alertList ma simula l'arrivo di un nuovo alert

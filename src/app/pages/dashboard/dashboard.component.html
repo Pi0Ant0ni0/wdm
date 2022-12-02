@@ -18,7 +18,7 @@
     </nb-accordion>
   </div>
   <div class="col-xxxl-9 col-xl-12" >
-    <button *ngIf="result.length >0 " nbButton status="danger" style="float: right; margin-top: 3%;">Crea Alert</button>
+    <button *ngIf="result.length >0 " nbButton status="danger" style="float: right; margin-top: 3%;" (click)="createAlert(query)">Crea Alert</button>
   </div>
 </div>
 <h1 *ngIf="alerts.length>0">Alert configurati</h1>

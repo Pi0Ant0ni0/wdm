@@ -14,8 +14,6 @@ export class HeaderService {
   constructor() {
   }
 
-
-
   public getNewAlerts = (): Observable<Map<string, string>> => {
     return this.latestAlerts.asObservable();
   }
