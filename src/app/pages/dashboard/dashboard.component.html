@@ -7,30 +7,45 @@
           {{searchItem.title}}
         </nb-accordion-item-header>
         <nb-accordion-item-body>
-         <b>Data:</b> {{searchItem.date | date}}<br>
+          <b>Data:</b> {{searchItem.date | date}}<br>
           <b>Category:</b> {{searchItem.category}}<br>
           <b>Media:</b> {{searchItem.media}}<br>
           <div>
-            <button *ngIf="searchItem.hasFile" nbButton status="danger" style="float: right;" (click)="download(searchItem)">Scarica dump</button>
+            <button *ngIf="searchItem.hasFile" nbButton status="danger" style="float: right;"
+                    (click)="download(searchItem)">Scarica dump
+            </button>
           </div>
         </nb-accordion-item-body>
       </nb-accordion-item>
     </nb-accordion>
   </div>
-  <div class="col-xxxl-9 col-xl-12" >
-    <button *ngIf="result.length >0 " nbButton status="danger" style="float: right; margin-top: 3%;" (click)="createAlert(query)">Crea Alert</button>
+  <div class="col-xxxl-9 col-xl-12">
+    <button *ngIf="result.length >0 " nbButton status="danger" style="float: right; margin-top: 3%;"
+            (click)="createAlert()">Crea Alert
+    </button>
   </div>
 </div>
 <h1 *ngIf="alerts.length>0">Alert configurati</h1>
 <div class="row" *ngIf="alerts.length>0">
-  <div class="col-xxxl-9 col-xl-12">
+  <div style="width: 100%">
     <nb-accordion multi>
       <nb-accordion-item *ngFor="let alert of alerts">
         <nb-accordion-item-header (click)="getAlerts(alert.query)">
-          {{alert.query}}
+          <table style="width: 95%">
+            <tr>
+              <th>
+                {{alert.query}}
+              </th>
+              <th style="float: right;">
+                <button nbButton status="danger" (click)="deleteAlert(alert.query)">Elimina Alert</button>
+              </th>
+            </tr>
+          </table>
         </nb-accordion-item-header>
         <nb-accordion-item-body *ngFor="let search of alertsMap.get(alert.query)">
-          <button *ngIf="search.id==latestAlertIdMap.get(alert.query)" nbButton status="danger" style="float: right;">LATEST</button>
+          <button *ngIf="search.id==latestAlertIdMap.get(alert.query)" nbButton status="danger" style="float: right;">
+            LATEST
+          </button>
           <b>Titolo</b>{{search.title}}<br>
           <b>Data:</b> {{search.date | date}}<br>
           <b>Category:</b> {{search.category}}<br>

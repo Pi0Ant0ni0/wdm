@@ -5,7 +5,7 @@ import {
 } from '@nebular/theme';
 import {SearchService} from "../../api/services/search.service";
 import {Search, SearchScheduleCommand, SearchScheduleResponseDTO} from "../../api/model/search.model";
-import {Observable, of} from "rxjs";
+import {Observable} from "rxjs";
 import {ActivatedRoute} from "@angular/router";
 import {AlertDTO} from "../../api/model/session.model";
 import {SessionService} from "../../api/services/session.service";
@@ -15,7 +15,7 @@ import {
 } from 'ngx-mqtt';
 import {AuthConfigService} from "../../infrastructure/auth-service/auth-config.service";
 import {HttpService} from "../../infrastructure/base-service/http.service";
-import {HeaderService} from "../../infrastructure/@theme/components/header/header.service";
+import {Profile} from "../../infrastructure/auth-service/auth-model/auth.model";
 
 @Component({
   selector: 'ngx-dashboard',
@@ -37,6 +37,12 @@ export class DashboardComponent implements OnInit {
   //latest alert i must highlight it
   public latestAlertIdMap: Map<string, string> = new Map();
 
+  //user logged in
+  private _profile:Profile;
+
+  //FIXME remove solo per dinamicita
+  private _newServices:boolean =false;
+
   constructor(private _activatedRoute: ActivatedRoute,
               private _searchService: NbSearchService,
               private _searchGateway: SearchService,
@@ -44,21 +50,20 @@ export class DashboardComponent implements OnInit {
               private _mqttService: MqttService,
               private _toastrService: NbToastrService,
               private _oauthService: AuthConfigService,
-              private _headerService: HeaderService,
-              private _httpService: HttpService
+              private _httpService: HttpService,
+              private _profileService: AuthConfigService,
   ) {
     //subscribe to search event to make query
     this._searchService.onSearchSubmit().subscribe((result) => {
       this.query = result.term
-      let query = result.term
-      this._makeSearch(query);
-
+      this._makeSearch(this.query);
     });
   }
 
 
   //if there are search params from previous search we execute the search
   ngOnInit(): void {
+
     this._activatedRoute.queryParams.subscribe((params) => {
       let searchQuery = params["search"];
       if (searchQuery) {
@@ -66,30 +71,31 @@ export class DashboardComponent implements OnInit {
       }
     });
 
-    /**
-     * get current alerts
-     * */
-    this.alerts=this._headerService.alert;
+    this._profileService.profile.subscribe((profile: Profile) => {
+      this._profile = profile;
+      /**
+       * get current alerts
+       * */
+      this.alerts = this._sessionService.currentAlerts;
 
-    /**
-     * subscribe to alert update
-     * */
-    this._headerService.getCurrentAlerts().subscribe((alerts) => {
-      this.alerts = alerts;
-    });
+      /**
+       * subscribe to alert update
+       * */
+      this._sessionService.getCurrentAlertsObservable().subscribe((alerts) => {
+        this.alerts = alerts;
+      });
 
-    //retrieve latest alert
-    this._headerService.getNewAlerts().subscribe((latest: Map<string, string>) => {
-      for (let query of latest.keys()) {
-        if (!(this.latestAlertIdMap.has(query)) || (this.latestAlertIdMap.has(query) && this.latestAlertIdMap.get(query) != latest.get(query))) {
-          this._alertListUpdate(query).subscribe(result => {
-            this.alertsMap.set(query, result);
-            this.latestAlertIdMap = latest;
-          });
-          break;
-        }
-      }
-
+      //retrieve latest alert
+      this._sessionService.getLatestAlertObservable().subscribe((latest: Map<string, string>) => {
+          this.latestAlertIdMap = latest;
+          this._newServices = true;
+          for (let query of latest.keys()) {
+            this._searchGateway._alertList2(query).subscribe(alertList => {
+              this.alertsMap.set(query, alertList);
+            });
+          }
+          console.log(this.alertsMap);
+        });
     });
   }
 
@@ -97,9 +103,15 @@ export class DashboardComponent implements OnInit {
    * get last 5 alerts for that query
    * */
   public getAlerts(query: string): void {
-    this._alertsList(query).subscribe(alertList => {
-      this.alertsMap.set(query, alertList);
-    });
+    if(this._newServices){
+      this._searchGateway._alertList2(query).subscribe(alertList=>{
+        this.alertsMap.set(query,alertList);
+      });
+    }else {
+      this._searchGateway._alertsList(query).subscribe(alertList => {
+        this.alertsMap.set(query, alertList);
+      });
+    }
   }
 
 
@@ -121,61 +133,27 @@ export class DashboardComponent implements OnInit {
   private _makeSearch = (query: string): void => {
     let searchCommand: SearchScheduleCommand = new SearchScheduleCommand();
     searchCommand.query = query;
-    this._search(searchCommand).subscribe((response: SearchScheduleResponseDTO) => {
+    this._searchGateway._search(searchCommand).subscribe((response: SearchScheduleResponseDTO) => {
       //generare i rettangoli per ogni risposta
       this.result = response.result;
     });
   }
 
-  //create searchCommand and execute the search
-  public createAlert = (query: string): void => {
+  //crea un nuovo alert per l'utente
+  public createAlert = (): void => {
     let searchCommand: SearchScheduleCommand = new SearchScheduleCommand();
-    searchCommand.query = query;
-    //qua bisogna chiamare il servizio reale di creazione dell'alert presente in session.service.ts
+    searchCommand.query = this.query;
+    this._sessionService._createAlert(this._profile.userId,{query:this.query}).subscribe();
   }
 
-  /*
-  * Mockup come _alertList ma simula l'arrivo di un nuovo alert
-  * **/
-  private _alertListUpdate = (query: string): Observable<Search[]> => {
-    let dto: Search[] = [
-      {
-        id: "id1",
-        title: "unisannio segreteria",
-        category: "category1",
-        date: new Date(),
-        media: "txt",
-        hasFile: false,
-      },
-      {
-        id: "id2",
-        title: "unisannio rettorato",
-        category: "category2",
-        date: new Date(),
-        media: "txt",
-        hasFile: true,
-      },
-    ];
-    return of(dto);
+  //delete alert
+  public deleteAlert = (query:string): void => {
+    let searchCommand: SearchScheduleCommand = new SearchScheduleCommand();
+    searchCommand.query = this.query;
+    this._sessionService._deleteAlert(this._profile.userId,{query:query}).subscribe();
   }
 
 
-  /**
-   * Mockup per avere gli ultimi  5 search di questo alert (alertsList)
-   * */
-  private _alertsList = (query: string): Observable<Search[]> => {
-    let dto: Search[] = [
-      {
-        id: "id2",
-        title: "unisannio rettorato",
-        category: "category2",
-        date: new Date(),
-        media: "txt",
-        hasFile: true,
-      },
-    ];
-    return of(dto);
-  }
 
 
   /**
@@ -187,34 +165,7 @@ export class DashboardComponent implements OnInit {
   }
 
 
-  /**
-   * mockup the search operation
-   * */
-  private _search = (command: SearchScheduleCommand): Observable<SearchScheduleResponseDTO> => {
-    let dto: SearchScheduleResponseDTO = {
-      result: [
-        {
-          id: "id1",
-          title: "CAM4",
-          category: "category",
-          date: new Date(),
-          media: "txt",
-          hasFile: false,
-        },
-        {
-          id: "id2",
-          title: "Yahoo Data Breach (2017)",
-          category: "category",
-          date: new Date(),
-          media: ".dump",
-          hasFile: true,
-        },
-      ],
-      query: command.query,
-      timestamp: new Date()
-    };
-    return of(dto);
-  }
+
 
 
 }

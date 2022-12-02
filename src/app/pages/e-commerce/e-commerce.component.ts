@@ -18,6 +18,7 @@ export class ECommerceComponent {
   //result from query
   public result: QueryOccurancy[] = [];
 
+
   constructor(private _searchService:NbSearchService,
               private _searchGateway: SearchService,
               private _router:Router) {

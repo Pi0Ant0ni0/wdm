@@ -9,14 +9,14 @@ import {
 } from '@nebular/theme';
 
 import {LayoutService} from '../../../@core/utils';
-import {Observable, of, Subject} from 'rxjs';
+import {Subject} from 'rxjs';
 import {IMqttMessage, MqttService} from "ngx-mqtt";
-import {AlertDTO, SessionDTO, UpdateSessionCommand} from "../../../../api/model/session.model";
+import {AlertDTO} from "../../../../api/model/session.model";
 import {Router} from "@angular/router";
 import {Profile} from "../../../auth-service/auth-model/auth.model";
 import {AuthConfigService} from "../../../auth-service/auth-config.service";
 import {UserDetailsComponent} from "./user-details/user-details.component";
-import {HeaderService} from "./header.service";
+import {SessionService} from "../../../../api/services/session.service";
 
 
 @Component({
@@ -76,7 +76,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
               private _router: Router,
               private _authService: AuthConfigService,
               private _dialogService: NbDialogService,
-              private _headerService: HeaderService,
+              private _sessionService: SessionService,
   ) {
 
   }
@@ -124,14 +124,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.themeService.onThemeChange().subscribe(themeName => {
         this.currentTheme = themeName;
         //update current session
-        this._updateSession(this.profile.userId,{theme:this.currentTheme}).subscribe();
+        this._sessionService._updateSession(this.profile.userId,{theme:this.currentTheme}).subscribe();
       });
 
 
-      this._getSession("userId").subscribe(session => {
+      this._sessionService._getSession(this.profile.userId).subscribe(session => {
         this.alerts = session.alerts;
-        //update alerts
-        this._headerService.emitCurrentAlerts(this.alerts);
         //update theme
         this.changeTheme(session.theme);
         //subscribe to alert topic
@@ -144,7 +142,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
               query: JSON.parse(message.payload.toString()).query,
             }
             this.latestAlert.set(notification.query, notification.id);
-            this._headerService.emitAlerts(this.latestAlert);
+            this._sessionService.emitLatestAlertsMap(this.latestAlert);
           });
         });
 
@@ -200,37 +198,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
 
-  /**
-   * mockup for get session operation
-   * */
-  private _getSession = (userId: string): Observable<SessionDTO> => {
-    let dto: AlertDTO[] = [
-      {
-        query: "unisannio.it",
-        alertDate: new Date(),
-      },
-      {
-        query: "studenti.unisannio.it",
-        alertDate: new Date(),
-      },
-      {
-        query: "investireFacile.it",
-        alertDate: new Date(),
-      },
-    ]
-    let session: SessionDTO =
-      {
-        alerts: dto,
-        theme: "cosmic",
-      };
-    return of(session);
-  }
 
-  /**
-   * mockup for updateSession when changing theme
-   * */
-  private _updateSession=(userId:string, command:UpdateSessionCommand):Observable<void>=>{
-    console.log("theme changed");
-    return of();
-  }
+
 }
