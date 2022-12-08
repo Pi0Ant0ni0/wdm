@@ -11,12 +11,13 @@ import {
 import {LayoutService} from '../../../@core/utils';
 import {Subject} from 'rxjs';
 import {IMqttMessage, MqttService} from "ngx-mqtt";
-import {AlertDTO} from "../../../../api/model/session.model";
+import {AlertDTO, SessionDTO} from "../../../../api/model/session.model";
 import {Router} from "@angular/router";
 import {Profile} from "../../../auth-service/auth-model/auth.model";
 import {AuthConfigService} from "../../../auth-service/auth-config.service";
 import {UserDetailsComponent} from "./user-details/user-details.component";
 import {SessionService} from "../../../../api/services/session.service";
+import {IntelxTokenDialogComponent} from "./intelx-token-dialog/intelx-token-dialog.component";
 
 
 @Component({
@@ -31,6 +32,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
    * user logged in
    * */
   public profile: Profile;
+  /**
+   * current session
+   * */
+  private _session: SessionDTO;
   /**
    * List of thees that can be chosen by the user
    * */
@@ -51,7 +56,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   public currentTheme = 'dark';
 
 
-  public userMenu = [{title: 'Profile'}, {title: 'Log out'}];
+  public userMenu = [{title: 'Profile'}, {title: 'Log out'}, {title: 'Token IntelX'}];
   /**
    * Set notification un dumbel action
    * */
@@ -100,22 +105,47 @@ export class HeaderComponent implements OnInit, OnDestroy {
        * */
       this._menuService.onItemClick().subscribe((result: NbMenuBag) => {
         if (result.item) {
-          if (result.item.title == this.userMenu[1].title) {
-            this._authService.logout();
-          }
-
-          if (result.item.title == this.userMenu[0].title) {
-            this._dialogService.open(UserDetailsComponent, {
-              context: {
-                title: 'Dettaglio Utente',
-                description: `
+          switch (result.item.title) {
+            /**
+             * open dialog with user details
+             * */
+            case "Profile":
+              this._dialogService.open(UserDetailsComponent, {
+                context: {
+                  title: 'Dettaglio Utente',
+                  description: `
               <b>Nome:</b> ${this.profile.name}<br>
               <b>Cognome:</b> ${this.profile.surname}<br>
               <b>Email:</b> ${this.profile.email}<br>
               <b>Ruolo:</b> ${this.profile.role}<br>
               `
-              },
-            });
+                },
+              });
+              break;
+            /**
+             * log out
+             * */
+            case "Log out":
+              this._authService.logout();
+              break;
+            /**
+             * open dialog to update token
+             * if token has been update refresh session item
+             * */
+            case "Token IntelX":
+              this._dialogService.open(IntelxTokenDialogComponent, {
+                context: {
+                  title: 'Token Intelx',
+                  description: this._session.intelxToken,
+                  userId: this.profile.userId
+                },
+              }).onClose.subscribe((hasUpdatedToken: boolean) => {
+                if (hasUpdatedToken) {
+                  this._sessionService._getSession(this.profile.userId).subscribe((session: SessionDTO) => {
+                    this._session = session;
+                  });
+                }
+              });
           }
         }
       });
@@ -124,11 +154,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.themeService.onThemeChange().subscribe(themeName => {
         this.currentTheme = themeName;
         //update current session
-        this._sessionService._updateSession(this.profile.userId,{theme:this.currentTheme}).subscribe();
+        this._sessionService._updateSession(this.profile.userId, {theme: this.currentTheme}).subscribe();
       });
 
 
-      this._sessionService._getSession(this.profile.userId).subscribe(session => {
+      this._sessionService._getSession(this.profile.userId).subscribe((session: SessionDTO) => {
+        this._session = session;
         this.alerts = session.alerts;
         //update theme
         this.changeTheme(session.theme);
@@ -196,8 +227,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this._menuService.navigateHome();
     return false;
   }
-
-
 
 
 }

@@ -16,14 +16,17 @@ export class AlertDTO{
 export class SessionDTO{
   public alerts: AlertDTO[];
   public theme: string;
+  public intelxToken?: string;
 }
 
 
 /**
  * command used to change theme
+ * Field are not compulsary it depends on what you need to update
  * */
 export class UpdateSessionCommand{
-  public theme:string;
+  public theme?:string;
+  public intelxToken?:string;
 }
 
 

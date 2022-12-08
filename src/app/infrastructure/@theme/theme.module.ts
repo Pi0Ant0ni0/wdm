@@ -11,7 +11,7 @@ import {
   NbButtonModule,
   NbSelectModule,
   NbIconModule,
-  NbThemeModule, NbCardModule,
+  NbThemeModule, NbCardModule, NbInputModule,
 } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { NbSecurityModule } from '@nebular/security';
@@ -37,6 +37,10 @@ import { COSMIC_THEME } from './styles/theme.cosmic';
 import { CORPORATE_THEME } from './styles/theme.corporate';
 import { DARK_THEME } from './styles/theme.dark';
 import { UserDetailsComponent } from './components/header/user-details/user-details.component';
+import { IntelxTokenDialogComponent } from './components/header/intelx-token-dialog/intelx-token-dialog.component';
+import {ReactiveFormsModule} from "@angular/forms";
+import {SessionService} from "../../api/services/session.service";
+import {HttpService} from "../base-service/http.service";
 
 const NB_MODULES = [
   NbLayoutModule,
@@ -51,7 +55,8 @@ const NB_MODULES = [
   NbSelectModule,
   NbIconModule,
   NbEvaIconsModule,
-  NbCardModule
+  NbCardModule,
+  NbInputModule
 ];
 const COMPONENTS = [
   HeaderComponent,
@@ -69,9 +74,10 @@ const PIPES = [
 ];
 
 @NgModule({
-  imports: [CommonModule, ...NB_MODULES],
+  imports: [CommonModule, ...NB_MODULES, ReactiveFormsModule],
   exports: [CommonModule, ...PIPES, ...COMPONENTS],
-  declarations: [...COMPONENTS, ...PIPES, UserDetailsComponent],
+  declarations: [...COMPONENTS, ...PIPES, UserDetailsComponent, IntelxTokenDialogComponent],
+  providers: [SessionService, HttpService]
 })
 export class ThemeModule {
   static forRoot(): ModuleWithProviders<ThemeModule> {
