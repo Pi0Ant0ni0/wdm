@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import {
   NbButtonModule,
   NbUserModule,
-  NbIconModule, NbAccordionModule,
+  NbIconModule, NbAccordionModule, NbDatepickerModule, NbCalendarRangeModule, NbInputModule
 } from '@nebular/theme';
 import {
   MqttModule,
@@ -13,6 +13,7 @@ import {SearchService} from "../../api/services/search.service";
 import {CommonModule} from "@angular/common";
 import {FormsModule} from "../../infrastructure/template-components/forms/forms.module";
 import {environment} from "../../../environments/environment";
+import {ReactiveFormsModule} from "@angular/forms";
 
 export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
   hostname: environment.mqttHostName,
@@ -34,7 +35,11 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
     NbAccordionModule,
     CommonModule,
     FormsModule,
-    MqttModule.forRoot(MQTT_SERVICE_OPTIONS)
+    MqttModule.forRoot(MQTT_SERVICE_OPTIONS),
+    NbDatepickerModule,
+    NbCalendarRangeModule,
+    NbInputModule,
+    ReactiveFormsModule
   ],
   declarations: [
     DashboardComponent,

@@ -1,4 +1,5 @@
 export class SearchScheduleResponseDTO{
+  public id:string;
   public timestamp:Date;
   public query:string;
   public result:Search[];
@@ -30,6 +31,12 @@ export class Search{
   }
 }
 
-export class SearchScheduleCommand{
+export class SearchCommand{
+  public query:string;
+  public from?:number;
+  public to?:number;
+}
+
+export class ScheduleCommand{
   public query:string;
 }

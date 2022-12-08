@@ -1,11 +1,12 @@
 import {Component, OnInit} from '@angular/core';
 import {
+  NbDialogService,
   NbSearchService,
   NbToastrService
 } from '@nebular/theme';
 import {SearchService} from "../../api/services/search.service";
-import {Search, SearchScheduleCommand, SearchScheduleResponseDTO} from "../../api/model/search.model";
-import {Observable} from "rxjs";
+import {ScheduleCommand, Search, SearchCommand, SearchScheduleResponseDTO} from "../../api/model/search.model";
+
 import {ActivatedRoute} from "@angular/router";
 import {AlertDTO} from "../../api/model/session.model";
 import {SessionService} from "../../api/services/session.service";
@@ -16,6 +17,12 @@ import {
 import {AuthConfigService} from "../../infrastructure/auth-service/auth-config.service";
 import {HttpService} from "../../infrastructure/base-service/http.service";
 import {Profile} from "../../infrastructure/auth-service/auth-model/auth.model";
+import {FormControl} from "@angular/forms";
+import {BreachService} from "../../api/services/breach.service";
+import {BreachDTO} from "../../api/model/breach.model";
+import {
+  GenericDialogComponent
+} from "../../infrastructure/@theme/components/header/user-details/generic-dialog.component";
 
 @Component({
   selector: 'ngx-dashboard',
@@ -42,6 +49,7 @@ export class DashboardComponent implements OnInit {
 
   //FIXME remove solo per dinamicita
   private _newServices:boolean =false;
+  public dateFilter:FormControl = new FormControl();
 
   constructor(private _activatedRoute: ActivatedRoute,
               private _searchService: NbSearchService,
@@ -52,6 +60,8 @@ export class DashboardComponent implements OnInit {
               private _oauthService: AuthConfigService,
               private _httpService: HttpService,
               private _profileService: AuthConfigService,
+              private _breachService:BreachService,
+              private _dialogService:NbDialogService
   ) {
     //subscribe to search event to make query
     this._searchService.onSearchSubmit().subscribe((result) => {
@@ -90,7 +100,7 @@ export class DashboardComponent implements OnInit {
           this.latestAlertIdMap = latest;
           this._newServices = true;
           for (let query of latest.keys()) {
-            this._searchGateway._alertList2(query).subscribe(alertList => {
+            this._sessionService._getAlertList2(this._profile.userId,query).subscribe(alertList => {
               this.alertsMap.set(query, alertList);
             });
           }
@@ -104,11 +114,11 @@ export class DashboardComponent implements OnInit {
    * */
   public getAlerts(query: string): void {
     if(this._newServices){
-      this._searchGateway._alertList2(query).subscribe(alertList=>{
+      this._sessionService._getAlertList2(this._profile.userId,query).subscribe(alertList=>{
         this.alertsMap.set(query,alertList);
       });
     }else {
-      this._searchGateway._alertsList(query).subscribe(alertList => {
+      this._sessionService._getAlertList(this._profile.userId,query).subscribe(alertList => {
         this.alertsMap.set(query, alertList);
       });
     }
@@ -119,19 +129,20 @@ export class DashboardComponent implements OnInit {
    * download specified dump
    * */
   public download(searchItem: Search) {
-    this._download(searchItem.title).subscribe(file => {
-      let data = new Blob([file], {type: 'application/bin'},);
-      let fileURL: string = URL.createObjectURL(data);
-      console.log(fileURL);
-      window.open(fileURL);
-    });
+    this._breachService._download(searchItem.title).subscribe((data:BreachDTO)=>{
+      this._dialogService.open(GenericDialogComponent,{
+        context:{
+          title:`Data grepped from ${searchItem.title}`,
+          description:data.result
+        }
+      });
 
-    //TODO here we need to call gateway to download the dump
+    });
   }
 
   //create searchCommand and execute the search
   private _makeSearch = (query: string): void => {
-    let searchCommand: SearchScheduleCommand = new SearchScheduleCommand();
+    let searchCommand: SearchCommand = new SearchCommand();
     searchCommand.query = query;
     this._searchGateway._search(searchCommand).subscribe((response: SearchScheduleResponseDTO) => {
       //generare i rettangoli per ogni risposta
@@ -141,27 +152,14 @@ export class DashboardComponent implements OnInit {
 
   //crea un nuovo alert per l'utente
   public createAlert = (): void => {
-    let searchCommand: SearchScheduleCommand = new SearchScheduleCommand();
+    let searchCommand: ScheduleCommand = new ScheduleCommand();
     searchCommand.query = this.query;
     this._sessionService._createAlert(this._profile.userId,{query:this.query}).subscribe();
   }
 
   //delete alert
   public deleteAlert = (query:string): void => {
-    let searchCommand: SearchScheduleCommand = new SearchScheduleCommand();
-    searchCommand.query = this.query;
-    this._sessionService._deleteAlert(this._profile.userId,{query:query}).subscribe();
-  }
-
-
-
-
-  /**
-   * mockup download request to downlaoad a dump
-   * */
-  private _download = (fileId: string): Observable<any> => {
-    let downloadUrl = "https://doc-04-1g-docs.googleusercontent.com/docs/securesc/oihhfj0vpl33e1ar9ltv2duhii6m8gst/t1nv7k5n91bnumrjmak0l5alkl69gtq0/1669910625000/09767907814616499229/07478474742730928969Z/1sEzcuXre6bhJeiHScF3C_FCCf4lqefnv?e=download&uuid=67f14687-53d8-46d9-b0c5-a30609021911&nonce=dgff8me91um88&user=07478474742730928969Z&hash=5fn22qrtq2gvl2301t6pl8dn383buvn4";
-    return this._httpService.get(downloadUrl, null, {"Access-Control-Allow-Origin": "*"}, "blob");
+    this._sessionService._deleteAlert(this._profile.userId,query).subscribe();
   }
 
 

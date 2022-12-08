@@ -18,6 +18,7 @@ import {AuthConfigService} from "../../../auth-service/auth-config.service";
 import {GenericDialogComponent} from "./user-details/generic-dialog.component";
 import {SessionService} from "../../../../api/services/session.service";
 import {IntelxTokenDialogComponent} from "./intelx-token-dialog/intelx-token-dialog.component";
+import {MqttAlert} from "../../../../api/model/Mqtt.model";
 
 
 @Component({
@@ -177,7 +178,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
           this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
             this._showToast("Nuovo breach", "Alert: " + a.query);
             this.newAlert = true;
-            let notification = {
+            let notification :MqttAlert= {
               id: JSON.parse(message.payload.toString()).id,
               query: JSON.parse(message.payload.toString()).query,
             }

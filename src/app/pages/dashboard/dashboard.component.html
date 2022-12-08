@@ -1,6 +1,8 @@
 <h1 *ngIf="result.length>0">Ricerche</h1>
 <div class="row">
-  <div class="col-xxxl-9 col-xl-12">
+  <div style="width: 100%;">
+    <input nbInput placeholder="Filtra per data" [nbDatepicker]="formpicker" [formControlName]="dateFilter">
+    <nb-rangepicker #formpicker></nb-rangepicker>
     <nb-accordion multi>
       <nb-accordion-item *ngFor="let searchItem of result">
         <nb-accordion-item-header>

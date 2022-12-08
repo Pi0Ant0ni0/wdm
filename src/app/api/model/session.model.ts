@@ -19,6 +19,15 @@ export class SessionDTO{
   public intelxToken?: string;
 }
 
+/**
+ * quando creiamo la session abbiamo a disposizione solo
+ * il tema corrente e lo user id
+ * */
+export class CreateSessionCommand{
+  public theme:string;
+  public userId:string;
+}
+
 
 /**
  * command used to change theme
