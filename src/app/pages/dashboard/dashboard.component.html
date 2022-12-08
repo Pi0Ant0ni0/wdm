@@ -1,14 +1,14 @@
 <h1 *ngIf="result.length>0">Ricerche</h1>
-<div class="row">
+<div class="row" *ngIf="result.length>0">
   <div style="width: 100%;">
     <div style="display: inline;">
       <input nbInput placeholder="Filtra per data" [nbDatepicker]="formControl" [formControl]="dateFilter">
       <nb-rangepicker #formControl></nb-rangepicker>
-      <button *ngIf="result.length >0 " nbButton status="danger" style="float: right;"
+      <button nbButton status="danger" style="float: right;"
               (click)="filter()">Filtra
       </button>
     </div>
-    <div style="margin-top: 10%;">
+    <div style="margin-top: 3%;">
       <nb-accordion multi>
         <nb-accordion-item *ngFor="let searchItem of result">
           <nb-accordion-item-header>
@@ -29,7 +29,7 @@
     </div>
   </div>
   <div style="width: 100%">
-    <button *ngIf="result.length >0 " nbButton status="danger" style="float: right; margin-top: 3%;"
+    <button nbButton status="danger" style="float: right; margin-top: 3%;"
             (click)="createAlert()">Crea Alert
     </button>
   </div>
