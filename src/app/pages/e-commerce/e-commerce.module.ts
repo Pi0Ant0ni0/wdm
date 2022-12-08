@@ -56,6 +56,8 @@ import { EarningPieChartComponent } from './earning-card/back-side/earning-pie-c
 import { EarningCardFrontComponent } from './earning-card/front-side/earning-card-front.component';
 import { EarningLiveUpdateChartComponent } from './earning-card/front-side/earning-live-update-chart.component';
 import {ChartsModule} from "../../infrastructure/template-components/charts/charts.module";
+import {SmartTableComponent} from "./smart-table/smart-table.component";
+import {Ng2SmartTableModule} from "ng2-smart-table";
 
 @NgModule({
   imports: [
@@ -73,6 +75,7 @@ import {ChartsModule} from "../../infrastructure/template-components/charts/char
     NgxChartsModule,
     LeafletModule,
     ChartsModule,
+    Ng2SmartTableModule,
   ],
   declarations: [
     ECommerceComponent,
@@ -107,6 +110,7 @@ import {ChartsModule} from "../../infrastructure/template-components/charts/char
     EarningCardBackComponent,
     EarningPieChartComponent,
     EarningLiveUpdateChartComponent,
+    SmartTableComponent
   ],
   providers: [
     CountryOrdersMapService,
