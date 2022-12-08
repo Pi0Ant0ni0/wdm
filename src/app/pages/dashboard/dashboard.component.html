@@ -1,25 +1,32 @@
 <h1 *ngIf="result.length>0">Ricerche</h1>
 <div class="row">
   <div style="width: 100%;">
-    <input nbInput placeholder="Filtra per data" [nbDatepicker]="formpicker" [formControlName]="dateFilter">
-    <nb-rangepicker #formpicker></nb-rangepicker>
-    <nb-accordion multi>
-      <nb-accordion-item *ngFor="let searchItem of result">
-        <nb-accordion-item-header>
-          {{searchItem.title}}
-        </nb-accordion-item-header>
-        <nb-accordion-item-body>
-          <b>Data:</b> {{searchItem.date | date}}<br>
-          <b>Category:</b> {{searchItem.category}}<br>
-          <b>Media:</b> {{searchItem.media}}<br>
-          <div>
-            <button *ngIf="searchItem.hasFile" nbButton status="danger" style="float: right;"
-                    (click)="download(searchItem)">Scarica dump
-            </button>
-          </div>
-        </nb-accordion-item-body>
-      </nb-accordion-item>
-    </nb-accordion>
+    <div style="display: inline;">
+      <input nbInput placeholder="Filtra per data" [nbDatepicker]="formControl" [formControl]="dateFilter">
+      <nb-rangepicker #formControl></nb-rangepicker>
+      <button *ngIf="result.length >0 " nbButton status="danger" style="float: right;"
+              (click)="filter()">Filtra
+      </button>
+    </div>
+    <div style="margin-top: 10%;">
+      <nb-accordion multi>
+        <nb-accordion-item *ngFor="let searchItem of result">
+          <nb-accordion-item-header>
+            {{searchItem.title}}
+          </nb-accordion-item-header>
+          <nb-accordion-item-body>
+            <b>Data:</b> {{searchItem.date | date}}<br>
+            <b>Category:</b> {{searchItem.category}}<br>
+            <b>Media:</b> {{searchItem.media}}<br>
+            <div>
+              <button *ngIf="searchItem.hasFile" nbButton status="danger" style="float: right;"
+                      (click)="download(searchItem)">Scarica dump
+              </button>
+            </div>
+          </nb-accordion-item-body>
+        </nb-accordion-item>
+      </nb-accordion>
+    </div>
   </div>
   <div style="width: 100%">
     <button *ngIf="result.length >0 " nbButton status="danger" style="float: right; margin-top: 3%;"

@@ -49,7 +49,7 @@ export class DashboardComponent implements OnInit {
 
   //FIXME remove solo per dinamicita
   private _newServices:boolean =false;
-  public dateFilter:FormControl = new FormControl();
+  public dateFilter:FormControl = new FormControl(new Date());
 
   constructor(private _activatedRoute: ActivatedRoute,
               private _searchService: NbSearchService,
@@ -81,6 +81,7 @@ export class DashboardComponent implements OnInit {
       }
     });
 
+
     this._profileService.profile.subscribe((profile: Profile) => {
       this._profile = profile;
       /**
@@ -106,6 +107,23 @@ export class DashboardComponent implements OnInit {
           }
           console.log(this.alertsMap);
         });
+    });
+  }
+
+
+  public filter():void{
+    let command : SearchCommand= new SearchCommand();
+    let filterItem =this.dateFilter.value;
+    command.query=this.query;
+    if(filterItem){
+      command.from=filterItem.start;
+      command.to=filterItem.to;
+    }
+    this._searchGateway._search(command).subscribe((result)=>{
+      if(command.from) {
+        result.result.pop();
+      }
+      this.result=result.result;
     });
   }
 
