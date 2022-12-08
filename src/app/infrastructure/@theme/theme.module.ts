@@ -36,10 +36,9 @@ import { DEFAULT_THEME } from './styles/theme.default';
 import { COSMIC_THEME } from './styles/theme.cosmic';
 import { CORPORATE_THEME } from './styles/theme.corporate';
 import { DARK_THEME } from './styles/theme.dark';
-import { UserDetailsComponent } from './components/header/user-details/user-details.component';
+import { GenericDialogComponent } from './components/header/user-details/generic-dialog.component';
 import { IntelxTokenDialogComponent } from './components/header/intelx-token-dialog/intelx-token-dialog.component';
 import {ReactiveFormsModule} from "@angular/forms";
-import {SessionService} from "../../api/services/session.service";
 import {HttpService} from "../base-service/http.service";
 
 const NB_MODULES = [
@@ -76,8 +75,8 @@ const PIPES = [
 @NgModule({
   imports: [CommonModule, ...NB_MODULES, ReactiveFormsModule],
   exports: [CommonModule, ...PIPES, ...COMPONENTS],
-  declarations: [...COMPONENTS, ...PIPES, UserDetailsComponent, IntelxTokenDialogComponent],
-  providers: [SessionService, HttpService]
+  declarations: [...COMPONENTS, ...PIPES, GenericDialogComponent, IntelxTokenDialogComponent],
+  providers: [HttpService]
 })
 export class ThemeModule {
   static forRoot(): ModuleWithProviders<ThemeModule> {

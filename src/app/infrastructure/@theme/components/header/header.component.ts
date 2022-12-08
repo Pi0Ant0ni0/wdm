@@ -3,7 +3,7 @@ import {
   NbDialogService,
   NbGlobalPhysicalPosition,
   NbMenuBag,
-  NbMenuService,
+  NbMenuService, NbSearchService,
   NbSidebarService,
   NbThemeService, NbToastrService
 } from '@nebular/theme';
@@ -15,7 +15,7 @@ import {AlertDTO, SessionDTO} from "../../../../api/model/session.model";
 import {Router} from "@angular/router";
 import {Profile} from "../../../auth-service/auth-model/auth.model";
 import {AuthConfigService} from "../../../auth-service/auth-config.service";
-import {UserDetailsComponent} from "./user-details/user-details.component";
+import {GenericDialogComponent} from "./user-details/generic-dialog.component";
 import {SessionService} from "../../../../api/services/session.service";
 import {IntelxTokenDialogComponent} from "./intelx-token-dialog/intelx-token-dialog.component";
 
@@ -72,6 +72,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
    */
   public latestAlert: Map<string, string> = new Map();
 
+  //flag to abilitate or disabilitate search
+  public searchEnabled:boolean = false;
+
   constructor(private sidebarService: NbSidebarService,
               private _menuService: NbMenuService,
               private themeService: NbThemeService,
@@ -82,6 +85,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
               private _authService: AuthConfigService,
               private _dialogService: NbDialogService,
               private _sessionService: SessionService,
+              private _searchService: NbSearchService
   ) {
 
   }
@@ -110,7 +114,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
              * open dialog with user details
              * */
             case "Profile":
-              this._dialogService.open(UserDetailsComponent, {
+              this._dialogService.open(GenericDialogComponent, {
                 context: {
                   title: 'Dettaglio Utente',
                   description: `
@@ -143,6 +147,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
                 if (hasUpdatedToken) {
                   this._sessionService._getSession(this.profile.userId).subscribe((session: SessionDTO) => {
                     this._session = session;
+                    this.searchEnabled = this._session.intelxToken.length > 0;
                   });
                 }
               });
@@ -151,10 +156,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
       });
 
       //subscribe to theme change to update session
-      this.themeService.onThemeChange().subscribe(themeName => {
-        this.currentTheme = themeName;
+      this.themeService.onThemeChange().subscribe((themeName) => {
+        this.currentTheme = themeName.name;
         //update current session
-        this._sessionService._updateSession(this.profile.userId, {theme: this.currentTheme}).subscribe();
+        this._sessionService._updateSession(this.profile.userId, {theme: this.currentTheme}).subscribe(()=>{
+          this._sessionService.getSession(this.profile.userId).subscribe((session)=>{
+            this._session=session;
+          });
+        });
       });
 
 
@@ -181,6 +190,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     });
 
+  }
+
+  public unableToSearch(){
+    this._dialogService.open(GenericDialogComponent, {
+      context: {
+        title: 'Impossibile effettuare una ricerca',
+        description: `Per effettuare una ricerca è necessario inserire un <b>token intelx <b>`
+      },
+    });
   }
 
   public resetAlertStatus() {

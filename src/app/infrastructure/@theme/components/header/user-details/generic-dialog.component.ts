@@ -3,10 +3,10 @@ import {NbDialogRef} from "@nebular/theme";
 
 @Component({
   selector: 'ngx-user-details',
-  templateUrl: './user-details.component.html',
-  styleUrls: ['./user-details.component.scss']
+  templateUrl: './generic-dialog.component.html',
+  styleUrls: ['./generic-dialog.component.scss']
 })
-export class UserDetailsComponent{
+export class GenericDialogComponent {
 
   /**
    * title of dialog
@@ -20,7 +20,7 @@ export class UserDetailsComponent{
   /**
    * inject reference to dialog
    * */
-  constructor(protected ref: NbDialogRef<UserDetailsComponent>) {}
+  constructor(protected ref: NbDialogRef<GenericDialogComponent>) {}
 
   /**
    * callback to close the dialog

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import {HttpService} from "../../infrastructure/base-service/http.service";
 import {Observable, of, Subject} from "rxjs";
 import {environment} from "../../../environments/environment";
@@ -11,15 +11,35 @@ import {map} from "rxjs/operators";
 })
 export class SessionService {
 
+  public static _currentAlert: AlertDTO[] = [{
+    query: "unisannio.it",
+    alertDate: new Date(),
+  },
+    {
+      query: "studenti.unisannio.it",
+      alertDate: new Date(),
+    },
+    {
+      query: "investireFacile.it",
+      alertDate: new Date(),
+    },
+  ];
+  public static _session: SessionDTO = {
+    alerts: SessionService._currentAlert,
+    theme: "cosmic",
+    intelxToken: null,
+  };
+
 
   public latestAlertsMapSubject: Subject<Map<string, string>> = new Subject<Map<string, string>>();
   public currentAlertsSubject: Subject<AlertDTO[]> = new Subject<AlertDTO[]>();
-  private _currentAlert:AlertDTO[] =[];
 
-  constructor(private _http:HttpService) { }
 
-  public get currentAlerts():AlertDTO[]{
-    return this._currentAlert;
+  constructor(private _http: HttpService) {
+  }
+
+  public get currentAlerts(): AlertDTO[] {
+    return SessionService._currentAlert;
   }
 
   public getLatestAlertObservable = (): Observable<Map<string, string>> => {
@@ -36,21 +56,21 @@ export class SessionService {
 
   public emitCurrentAlerts = (alerts: AlertDTO[]): void => {
     this.currentAlertsSubject.next(alerts);
-    this._currentAlert=alerts;
+    SessionService._currentAlert = alerts;
   }
 
   /**
    * Add alert for the user specified
    * */
-  public createAlert=(userId:string, command: SearchScheduleCommand):Observable<void>=>{
+  public createAlert = (userId: string, command: SearchScheduleCommand): Observable<void> => {
     let url = `${environment.gateway}/sessions/${userId}/alerts`;
     //
-    return this._http.post(url, command).pipe(((response)=>{
-      this.getSession(userId).subscribe((session:SessionDTO)=>{
+    return this._http.post(url, command).pipe(((response) => {
+      this.getSession(userId).subscribe((session: SessionDTO) => {
         //aggiorno gli alert dell'utente
-        this._currentAlert=session.alerts;
+        SessionService._currentAlert = session.alerts;
         //emetto il nuovo valore
-        this.emitCurrentAlerts(this._currentAlert);
+        this.emitCurrentAlerts(SessionService._currentAlert);
       });
       return response;
     }));
@@ -60,7 +80,7 @@ export class SessionService {
   /**
    *Update session
    * */
-  public updateSession=(userId:string,sessionCommand: UpdateSessionCommand):Observable<void>=>{
+  public updateSession = (userId: string, sessionCommand: UpdateSessionCommand): Observable<void> => {
     let url = `${environment.gateway}/sessions/${userId}`;
     return this._http.put(url, sessionCommand);
   }
@@ -68,11 +88,11 @@ export class SessionService {
   /**
    * Delete alert for the user specified
    * */
-  public deleteAlert=(userId:string, command: SearchScheduleCommand):Observable<void>=>{
+  public deleteAlert = (userId: string, command: SearchScheduleCommand): Observable<void> => {
     let url = `${environment.gateway}/sessions/${userId}/alerts`;
-    return this._http.delete(url, command).pipe(map(()=>{
-      this._http.get(url).pipe(map((response:SessionDTO)=>{
-        this._currentAlert=response.alerts;
+    return this._http.delete(url, command).pipe(map(() => {
+      this._http.get(url).pipe(map((response: SessionDTO) => {
+        SessionService._currentAlert = response.alerts;
         this.emitCurrentAlerts(this.currentAlerts);
         return;
       }));
@@ -82,15 +102,14 @@ export class SessionService {
   /**
    * get alerts for the user specified
    * */
-  public getSession=(userId:string):Observable<SessionDTO>=>{
+  public getSession = (userId: string): Observable<SessionDTO> => {
     let url = `${environment.gateway}/sessions/${userId}`;
-    return this._http.get(url).pipe(map((response:SessionDTO)=>{
-      this._currentAlert=response.alerts;
+    return this._http.get(url).pipe(map((response: SessionDTO) => {
+      SessionService._currentAlert = response.alerts;
       this.emitCurrentAlerts(this.currentAlerts);
       return response;
     }));
   }
-
 
 
   /**
@@ -103,70 +122,46 @@ export class SessionService {
   /**
    *MOCKUP  Delete alert for the user specified
    * */
-  public _deleteAlert=(userId:string, command: SearchScheduleCommand):Observable<void>=>{
-    this._currentAlert =this._currentAlert.filter(function(value, index, arr){
+  public _deleteAlert = (userId: string, command: SearchScheduleCommand): Observable<void> => {
+    SessionService._currentAlert = SessionService._currentAlert.filter(function (value) {
       return value.query != command.query;
     });
-    this.emitCurrentAlerts(this._currentAlert);
+    this.emitCurrentAlerts(SessionService._currentAlert);
     return of();
   }
-
-
-
 
   /**
    * mockup for createAlert
    * */
-  public _createAlert=(userId:string, command: SearchScheduleCommand):Observable<void>=>{
-    let dto: AlertDTO=
+  public _createAlert = (userId: string, command: SearchScheduleCommand): Observable<void> => {
+    let dto: AlertDTO =
       {
         query: command.query,
         alertDate: new Date(),
       };
-    this._currentAlert.push(dto);
-    this.emitCurrentAlerts(this._currentAlert);
+    SessionService._currentAlert.push(dto);
+    this.emitCurrentAlerts(SessionService._currentAlert);
     return of();
   }
-
 
 
   /**
    * mockup for get session operation
    * */
   public _getSession = (userId: string): Observable<SessionDTO> => {
-    let dto: AlertDTO[] = [
-      {
-        query: "unisannio.it",
-        alertDate: new Date(),
-      },
-      {
-        query: "studenti.unisannio.it",
-        alertDate: new Date(),
-      },
-      {
-        query: "investireFacile.it",
-        alertDate: new Date(),
-      },
-    ]
-    let session: SessionDTO =
-      {
-        alerts: dto,
-        theme: "cosmic",
-      };
-    this._currentAlert=dto;
-    this.emitCurrentAlerts(dto);
-    return of(session);
+    this.emitCurrentAlerts(SessionService._currentAlert);
+    return of(SessionService._session);
   }
 
 
   /**
    * mockup for updateSession when changing theme
    * */
-  public _updateSession=(userId:string, command:UpdateSessionCommand):Observable<void>=>{
-    console.log("theme changed");
-    return of();
+  public _updateSession = (userId: string, command: UpdateSessionCommand): Observable<any> => {
+    command.intelxToken ? SessionService._session.intelxToken = command.intelxToken : console.log("token not setted");
+    command.theme ? SessionService._session.theme = command.theme : console.log("theme not setted");
+    return of("");
   }
-
 
 
 }
