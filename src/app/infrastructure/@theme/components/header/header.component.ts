@@ -74,7 +74,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   public latestAlert: Map<string, string> = new Map();
 
   //flag to abilitate or disabilitate search
-  public searchEnabled:boolean = false;
+  public searchEnabled: boolean = false;
 
   constructor(private sidebarService: NbSidebarService,
               private _menuService: NbMenuService,
@@ -146,7 +146,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
                 },
               }).onClose.subscribe((hasUpdatedToken: boolean) => {
                 if (hasUpdatedToken) {
-                  this._sessionService._getSession(this.profile.userId).subscribe((session: SessionDTO) => {
+                  this._sessionService.getSession(this.profile.userId).subscribe((session: SessionDTO) => {
                     this._session = session;
                     this.searchEnabled = this._session.intelxToken.length > 0;
                   });
@@ -160,40 +160,47 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.themeService.onThemeChange().subscribe((themeName) => {
         this.currentTheme = themeName.name;
         //update current session
-        this._sessionService._updateSession(this.profile.userId, {theme: this.currentTheme}).subscribe(()=>{
-          this._sessionService.getSession(this.profile.userId).subscribe((session)=>{
-            this._session=session;
+        this._sessionService.updateSession(this.profile.userId, {theme: this.currentTheme}).subscribe(() => {
+          this._sessionService.getSession(this.profile.userId).subscribe((session) => {
+            this._session = session;
           });
         });
       });
 
 
-      this._sessionService._getSession(this.profile.userId).subscribe((session: SessionDTO) => {
-        this._session = session;
-        this.alerts = session.alerts;
-        //update theme
-        this.changeTheme(session.theme);
-        //subscribe to alert topic
-        this.alerts.forEach(a => {
-          this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
-            this._showToast("Nuovo breach", "Alert: " + a.query);
-            this.newAlert = true;
-            let notification :MqttAlert= {
-              id: JSON.parse(message.payload.toString()).id,
-              query: JSON.parse(message.payload.toString()).query,
-            }
-            this.latestAlert.set(notification.query, notification.id);
-            this._sessionService.emitLatestAlertsMap(this.latestAlert);
+      this._sessionService.getSession(this.profile.userId).subscribe(
+        (session: SessionDTO) => {
+          this._session = session;
+          this.alerts = session.alerts;
+          //update theme
+          this.changeTheme(session.theme);
+          //subscribe to alert topic
+          this.alerts.forEach(a => {
+            this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
+              this._showToast("Nuovo breach", "Alert: " + a.query);
+              this.newAlert = true;
+              let notification: MqttAlert = {
+                id: JSON.parse(message.payload.toString()).id,
+                query: JSON.parse(message.payload.toString()).query,
+              }
+              this.latestAlert.set(notification.query, notification.id);
+              this._sessionService.emitLatestAlertsMap(this.latestAlert);
+            });
           });
-        });
 
-      });
+        },
+        (error) => {
+          console.log(error);
+          //TODO va creata la sessione
+          this._sessionService.create(this.profile.userId,{theme:"dark",userId:this.profile.userId})
+            .subscribe(()=>console.log("session created"));
+        }
+      );
 
     });
-
   }
 
-  public unableToSearch(){
+  public unableToSearch() {
     this._dialogService.open(GenericDialogComponent, {
       context: {
         title: 'Impossibile effettuare una ricerca',
