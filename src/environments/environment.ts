@@ -25,7 +25,7 @@ export const environment = {
   },
   production: false,
   //TODO modifica il path
-  gateway: "http://192.168.2.2:8080/wm",
+  gateway: "http://localhost:8081/unisannio/DWM/api",
   mqttHostName: "test.mosquitto.org",
   port: 8081,
   clean: true, // Retain session
