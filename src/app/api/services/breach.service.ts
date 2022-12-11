@@ -14,8 +14,8 @@ export class BreachService {
   /**
    * get grepped string from dump
    * */
-  public download=(fileName:String):Observable<BreachDTO>=>{
-    let url = `${environment.gateway}/breaches/${fileName}`;
+  public download=(fileName:String, query:string):Observable<BreachDTO>=>{
+    let url = `${environment.gateway}/breaches/${fileName}?query=${query}`;
     return this._http.get(url,);
   }
 
@@ -23,7 +23,7 @@ export class BreachService {
   /**
    * get grepped string from dump
    * */
-  public _download=(fileName:String):Observable<BreachDTO>=>{
+  public _download=(fileName:String,query:string):Observable<BreachDTO>=>{
     return of({result:"link: tinder.com, userName:franco, password:frattolillo78"});
   }
 }

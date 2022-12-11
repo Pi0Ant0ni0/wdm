@@ -105,7 +105,6 @@ export class PersonalDashboardComponent implements OnInit {
               this.alertsMap.set(query, alertList);
             });
           }
-          console.log(this.alertsMap);
         });
     });
   }
@@ -147,7 +146,7 @@ export class PersonalDashboardComponent implements OnInit {
    * download specified dump
    * */
   public download(searchItem: Search) {
-    this._breachService._download(searchItem.title).subscribe((data:BreachDTO)=>{
+    this._breachService._download(searchItem.title,this.query).subscribe((data:BreachDTO)=>{
       this._dialogService.open(GenericDialogComponent,{
         context:{
           title:`Data grepped from ${searchItem.title}`,
