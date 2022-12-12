@@ -86,7 +86,7 @@ export class SessionService {
    * get sessions
    * */
   public getSession = (userId: string): Observable<SessionDTO> => {
-    let url = `${environment.gateway}/sessions/${userId}`;
+    let url = `${environment.gateway}/sessions`;
     return this._http.get(url).pipe(map((response: SessionDTO) => {
       SessionService._currentAlert = response.alerts;
       this.emitCurrentAlerts(this.currentAlerts);

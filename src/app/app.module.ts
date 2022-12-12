@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
-import { HttpClientModule } from '@angular/common/http';
+import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
 import { CoreModule } from './infrastructure/@core/core.module';
 import { ThemeModule } from './infrastructure/@theme/theme.module';
 import { AppComponent } from './app.component';
@@ -15,6 +15,7 @@ import {
   NbWindowModule,
 } from '@nebular/theme';
 import {AuthConfigModule} from "./infrastructure/auth-service/auth-config.module";
+import {JwtInterceptor} from "./infrastructure/auth-service/jwt-token-interceptor.service";
 
 @NgModule({
   declarations: [AppComponent],
@@ -34,6 +35,13 @@ import {AuthConfigModule} from "./infrastructure/auth-service/auth-config.module
     AuthConfigModule
   ],
   bootstrap: [AppComponent],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: JwtInterceptor,
+      multi: true
+    }
+  ]
 })
 export class AppModule {
 }

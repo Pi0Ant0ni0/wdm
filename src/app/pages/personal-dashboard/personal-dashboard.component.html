@@ -34,8 +34,8 @@
     </button>
   </div>
 </div>
-<h1 *ngIf="alerts.length>0">Alert configurati</h1>
-<div class="row" *ngIf="alerts.length>0">
+<h1 *ngIf="alerts && alerts.length>0">Alert configurati</h1>
+<div class="row" *ngIf="alerts && alerts.length>0">
   <div style="width: 100%">
     <nb-accordion multi>
       <nb-accordion-item *ngFor="let alert of alerts">

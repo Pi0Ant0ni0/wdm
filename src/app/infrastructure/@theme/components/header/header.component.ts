@@ -97,12 +97,27 @@ export class HeaderComponent implements OnInit, OnDestroy {
      * */
     this._authService.profile.subscribe((profile: Profile) => {
 
-      //set default theme
-      this.themeService.changeTheme("dark");
-      this.currentTheme = this.themeService.currentTheme;
 
       //get logged user
       this.profile = profile;
+
+      //set default theme
+      this.themeService.changeTheme("dark");
+      this.currentTheme = this.themeService.currentTheme;
+      //subscribe to theme change to update session
+      this.themeService.onThemeChange().subscribe((themeName) => {
+        if(this._session) {
+          this.currentTheme = themeName.name;
+          //update current session
+          console.log("Updating theme")
+          this._sessionService.updateSession(this.profile.userId, {theme: this.currentTheme}).subscribe(() => {
+            this._sessionService.getSession(this.profile.userId).subscribe((session) => {
+              this._session = session;
+            });
+          });
+        }
+      });
+
 
       /**
        * subscribing to logout event, when is clicked trigger logout
@@ -156,20 +171,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
         }
       });
 
-      //subscribe to theme change to update session
-      this.themeService.onThemeChange().subscribe((themeName) => {
-        this.currentTheme = themeName.name;
-        //update current session
-        this._sessionService.updateSession(this.profile.userId, {theme: this.currentTheme}).subscribe(() => {
-          this._sessionService.getSession(this.profile.userId).subscribe((session) => {
-            this._session = session;
-          });
-        });
-      });
-
 
       this._sessionService.getSession(this.profile.userId).subscribe(
         (session: SessionDTO) => {
+          console.log("required session for user : ",this.profile.userId);
           this._session = session;
           this.alerts = session.alerts;
           //update theme
@@ -190,7 +195,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
         },
         (error) => {
-          console.log(error);
+          console.log("no session found for ",this.profile.userId," creating new session. Error: ",error);
           //TODO va creata la sessione
           this._sessionService.create(this.profile.userId,{theme:"dark",userId:this.profile.userId})
             .subscribe(()=>console.log("session created"));
