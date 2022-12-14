@@ -14,9 +14,9 @@ export class AlertDTO{
  * and the theme choosen
  * */
 export class SessionDTO{
-  public alerts: AlertDTO[];
+  public alertDTOs: AlertDTO[];
   public theme: string;
-  public intelxToken?: string;
+  public intelXToken?: string;
 }
 
 /**
@@ -35,7 +35,7 @@ export class CreateSessionCommand{
  * */
 export class UpdateSessionCommand{
   public theme?:string;
-  public intelxToken?:string;
+  public intelXToken?:string;
 }
 
 

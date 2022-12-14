@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {NbSearchService} from "@nebular/theme";
 import {Router} from "@angular/router";
 import {SearchService} from "../../api/services/search.service";
@@ -9,7 +9,7 @@ import {ChartData} from "../../infrastructure/charts/echarts/echarts-pie.compone
   selector: 'global-dashboard',
   templateUrl: './global-dashboard.component.html',
 })
-export class GlobalDashboardComponent {
+export class GlobalDashboardComponent implements OnInit{
 
   public legend:string[]=[];
   public data:ChartData[]=[];
@@ -28,9 +28,9 @@ export class GlobalDashboardComponent {
   }
 
   ngOnInit(): void {
-    this._searchGateway._history().subscribe(response=> {
-      this.legend = response.result.map(q=>q.query);
-      this.data = response.result.map(q=>new ChartData(q.query, q.occurancy))
+    this._searchGateway.history().subscribe(response=> {
+      this.legend = response.results.map(q=>q.query);
+      this.data = response.results.map(q=>new ChartData(q.query, q.occurancy))
     });
   }
 

@@ -57,7 +57,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   public currentTheme = 'dark';
 
 
-  public userMenu = [{title: 'Profile'}, {title: 'Log out'}, {title: 'Token IntelX'}];
+  public userMenu = [{title: 'Profile'}, {title: 'Log out'}];
   /**
    * Set notification un dumbel action
    * */
@@ -73,8 +73,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
    */
   public latestAlert: Map<string, string> = new Map();
 
-  //flag to abilitate or disabilitate search
-  public searchEnabled: boolean = false;
 
   constructor(private sidebarService: NbSidebarService,
               private _menuService: NbMenuService,
@@ -101,20 +99,28 @@ export class HeaderComponent implements OnInit, OnDestroy {
       //get logged user
       this.profile = profile;
 
+      /**
+       * only admin can edit token
+       * */
+      if (this.profile && this.profile.role && this.profile.role=="admin"){
+        this.userMenu.push({title: 'Token IntelX'});
+      }
+
       //set default theme
       this.themeService.changeTheme("dark");
       this.currentTheme = this.themeService.currentTheme;
       //subscribe to theme change to update session
       this.themeService.onThemeChange().subscribe((themeName) => {
-        if(this._session) {
-          this.currentTheme = themeName.name;
-          //update current session
-          console.log("Updating theme")
-          this._sessionService.updateSession(this.profile.userId, {theme: this.currentTheme}).subscribe(() => {
-            this._sessionService.getSession(this.profile.userId).subscribe((session) => {
-              this._session = session;
+        if(this._session && this._session.theme && themeName) {
+          if (this._session.theme != themeName.name) {
+            this.currentTheme = themeName.name;
+            //update current session
+            this._sessionService.updateSession(this.profile.userId, {theme: this.currentTheme}).subscribe(() => {
+              this._sessionService.getSession(this.profile.userId).subscribe((session) => {
+                this._session = session;
+              });
             });
-          });
+          }
         }
       });
 
@@ -125,6 +131,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
        * */
       this._menuService.onItemClick().subscribe((result: NbMenuBag) => {
         if (result.item) {
+          console.log("selected: ",result.item.title)
           switch (result.item.title) {
             /**
              * open dialog with user details
@@ -156,14 +163,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
               this._dialogService.open(IntelxTokenDialogComponent, {
                 context: {
                   title: 'Token Intelx',
-                  description: this._session.intelxToken,
+                  description: this._session.intelXToken,
                   userId: this.profile.userId
                 },
               }).onClose.subscribe((hasUpdatedToken: boolean) => {
                 if (hasUpdatedToken) {
                   this._sessionService.getSession(this.profile.userId).subscribe((session: SessionDTO) => {
                     this._session = session;
-                    this.searchEnabled = this._session.intelxToken.length > 0;
                   });
                 }
               });
@@ -174,43 +180,35 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
       this._sessionService.getSession(this.profile.userId).subscribe(
         (session: SessionDTO) => {
-          console.log("required session for user : ",this.profile.userId);
           this._session = session;
-          this.alerts = session.alerts;
+          this.alerts = session.alertDTOs;
           //update theme
           this.changeTheme(session.theme);
           //subscribe to alert topic
-          this.alerts.forEach(a => {
-            this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
-              this._showToast("Nuovo breach", "Alert: " + a.query);
-              this.newAlert = true;
-              let notification: MqttAlert = {
-                id: JSON.parse(message.payload.toString()).id,
-                query: JSON.parse(message.payload.toString()).query,
-              }
-              this.latestAlert.set(notification.query, notification.id);
-              this._sessionService.emitLatestAlertsMap(this.latestAlert);
+          if(this.alerts) {
+            this.alerts.forEach(a => {
+              this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
+                this._showToast("Nuovo breach", "Alert: " + a.query);
+                this.newAlert = true;
+                let notification: MqttAlert = {
+                  id: JSON.parse(message.payload.toString()).id,
+                  query: JSON.parse(message.payload.toString()).query,
+                }
+                this.latestAlert.set(notification.query, notification.id);
+                this._sessionService.emitLatestAlertsMap(this.latestAlert);
+              });
             });
-          });
+          }
 
         },
         (error) => {
           console.log("no session found for ",this.profile.userId," creating new session. Error: ",error);
           //TODO va creata la sessione
           this._sessionService.create(this.profile.userId,{theme:"dark",userId:this.profile.userId})
-            .subscribe(()=>console.log("session created"));
+            .subscribe((sessionCreated)=>this._session=sessionCreated)
         }
       );
 
-    });
-  }
-
-  public unableToSearch() {
-    this._dialogService.open(GenericDialogComponent, {
-      context: {
-        title: 'Impossibile effettuare una ricerca',
-        description: `Per effettuare una ricerca è necessario inserire un <b>token intelx <b>`
-      },
     });
   }
 

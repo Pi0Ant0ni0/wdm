@@ -82,13 +82,13 @@ export class PersonalDashboardComponent implements OnInit {
     });
 
 
+
     this._profileService.profile.subscribe((profile: Profile) => {
       this._profile = profile;
       /**
        * get current alerts
        * */
       this.alerts = this._sessionService.currentAlerts;
-
       /**
        * subscribe to alert update
        * */
@@ -171,12 +171,12 @@ export class PersonalDashboardComponent implements OnInit {
   public createAlert = (): void => {
     let searchCommand: ScheduleCommand = new ScheduleCommand();
     searchCommand.query = this.query;
-    this._sessionService._createAlert(this._profile.userId,{query:this.query}).subscribe();
+    this._sessionService.createAlert(this._profile.userId,{query:this.query}).subscribe(()=>console.log("alert created"));
   }
 
   //delete alert
   public deleteAlert = (query:string): void => {
-    this._sessionService._deleteAlert(this._profile.userId,query).subscribe();
+    this._sessionService.deleteAlert(this._profile.userId,query).subscribe(()=>console.log("alert deleted"));
   }
 
 

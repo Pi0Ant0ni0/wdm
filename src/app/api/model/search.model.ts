@@ -6,7 +6,7 @@ export class SearchScheduleResponseDTO{
 }
 
 export class HistoryResponseDTO{
-  public result:QueryOccurancy[];
+  public results:QueryOccurancy[];
 }
 
 export class QueryOccurancy{

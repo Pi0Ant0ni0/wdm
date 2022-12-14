@@ -64,7 +64,7 @@ export class SearchService {
    * */
   public _history=():Observable<HistoryResponseDTO>=>{
     let dto: HistoryResponseDTO = {
-      result: [
+      results: [
         {
           query: "unisannio.it",
           occurancy: 4,

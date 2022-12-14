@@ -32,8 +32,8 @@ export class SmartTableComponent {
   public source: LocalDataSource = new LocalDataSource();
 
   constructor(private searchService: SearchService) {
-    this.searchService._history().subscribe((response: HistoryResponseDTO) => {
-      this.source.load(response.result);
+    this.searchService.history().subscribe((response: HistoryResponseDTO) => {
+      this.source.load(response.results);
     });
   }
 }
