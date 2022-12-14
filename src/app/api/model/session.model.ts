@@ -16,7 +16,6 @@ export class AlertDTO{
 export class SessionDTO{
   public alertDTOs: AlertDTO[];
   public theme: string;
-  public intelXToken?: string;
 }
 
 /**
@@ -35,7 +34,14 @@ export class CreateSessionCommand{
  * */
 export class UpdateSessionCommand{
   public theme?:string;
-  public intelXToken?:string;
+}
+
+
+/**
+ * Token IntelX
+ * */
+export class Token{
+  public token:string;
 }
 
 

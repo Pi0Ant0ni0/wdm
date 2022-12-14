@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpService} from "../../infrastructure/base-service/http.service";
 import {Observable, of, Subject} from "rxjs";
 import {environment} from "../../../environments/environment";
-import {AlertDTO, CreateSessionCommand, SessionDTO, UpdateSessionCommand} from "../model/session.model";
+import {AlertDTO, CreateSessionCommand, SessionDTO, Token, UpdateSessionCommand} from "../model/session.model";
 import {ScheduleCommand, Search} from "../model/search.model";
 import {map} from "rxjs/operators";
 
@@ -112,6 +112,25 @@ export class SessionService {
   public getAlertList = (userId: string, alertQuery: string): Observable<Search[]> => {
     let url = `${environment.gateway}/sessions/${userId}/alerts/${alertQuery}`;
     return this._http.get(url);
+  }
+
+
+  /**
+   * get intelxToken
+   * */
+  public getToken = (): Observable<Token> => {
+    let url = `${environment.gateway}/sessions/config/token`
+    return this._http.get(url);
+  }
+
+
+
+  /**
+   * update intelxToken
+   * */
+  public setToken = (token:string): Observable<void> => {
+    let url = `${environment.gateway}/sessions/config/token`
+    return this._http.put(url,token);
   }
 
 

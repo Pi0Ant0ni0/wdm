@@ -44,7 +44,7 @@ export class IntelxTokenDialogComponent implements OnInit{
    *callback called to update token
    * */
   public updateToken() {
-    this._sessionService.updateSession(this.userId,{intelXToken:this.intelxForm.get("intelxControl").value}).subscribe(()=>{
+    this._sessionService.setToken(this.intelxForm.get("intelxControl").value).subscribe(()=>{
       this.ref.close(true);
     });
   }

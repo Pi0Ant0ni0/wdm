@@ -11,7 +11,7 @@ import {
 import {LayoutService} from '../../../@core/utils';
 import {Subject} from 'rxjs';
 import {IMqttMessage, MqttService} from "ngx-mqtt";
-import {AlertDTO, SessionDTO} from "../../../../api/model/session.model";
+import {AlertDTO, SessionDTO, Token} from "../../../../api/model/session.model";
 import {Router} from "@angular/router";
 import {Profile} from "../../../auth-service/auth-model/auth.model";
 import {AuthConfigService} from "../../../auth-service/auth-config.service";
@@ -73,6 +73,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
    */
   public latestAlert: Map<string, string> = new Map();
 
+  /**
+   * IntelxToken
+   * */
+  private _token: string;
+
 
   constructor(private sidebarService: NbSidebarService,
               private _menuService: NbMenuService,
@@ -102,7 +107,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       /**
        * only admin can edit token
        * */
-      if (this.profile && this.profile.role && this.profile.role=="admin"){
+      if (this.profile && this.profile.role && this.profile.role == "admin") {
         this.userMenu.push({title: 'Token IntelX'});
       }
 
@@ -111,7 +116,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.currentTheme = this.themeService.currentTheme;
       //subscribe to theme change to update session
       this.themeService.onThemeChange().subscribe((themeName) => {
-        if(this._session && this._session.theme && themeName) {
+        if (this._session && this._session.theme && themeName) {
           if (this._session.theme != themeName.name) {
             this.currentTheme = themeName.name;
             //update current session
@@ -124,6 +129,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
         }
       });
 
+      this._sessionService.getToken().subscribe((token: Token) => {
+        if (token && token.token && token.token.length > 0) {
+          this._token = token.token;
+        }
+      });
+
 
       /**
        * subscribing to logout event, when is clicked trigger logout
@@ -131,7 +142,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
        * */
       this._menuService.onItemClick().subscribe((result: NbMenuBag) => {
         if (result.item) {
-          console.log("selected: ",result.item.title)
+          console.log("selected: ", result.item.title)
           switch (result.item.title) {
             /**
              * open dialog with user details
@@ -163,13 +174,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
               this._dialogService.open(IntelxTokenDialogComponent, {
                 context: {
                   title: 'Token Intelx',
-                  description: this._session.intelXToken,
+                  description: this._token,
                   userId: this.profile.userId
                 },
               }).onClose.subscribe((hasUpdatedToken: boolean) => {
                 if (hasUpdatedToken) {
-                  this._sessionService.getSession(this.profile.userId).subscribe((session: SessionDTO) => {
-                    this._session = session;
+                  this._sessionService.getToken().subscribe((token: Token) => {
+                    this._token = token.token;
                   });
                 }
               });
@@ -185,7 +196,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
           //update theme
           this.changeTheme(session.theme);
           //subscribe to alert topic
-          if(this.alerts) {
+          if (this.alerts) {
             this.alerts.forEach(a => {
               this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
                 this._showToast("Nuovo breach", "Alert: " + a.query);
@@ -202,10 +213,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
         },
         (error) => {
-          console.log("no session found for ",this.profile.userId," creating new session. Error: ",error);
+          console.log("no session found for ", this.profile.userId, " creating new session. Error: ", error);
           //TODO va creata la sessione
-          this._sessionService.create(this.profile.userId,{theme:"dark",userId:this.profile.userId})
-            .subscribe((sessionCreated)=>this._session=sessionCreated)
+          this._sessionService.create(this.profile.userId, {theme: "dark", userId: this.profile.userId})
+            .subscribe((sessionCreated) => this._session = sessionCreated)
         }
       );
 
