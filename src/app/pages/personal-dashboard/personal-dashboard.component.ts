@@ -118,7 +118,7 @@ export class PersonalDashboardComponent implements OnInit {
       command.from=filterItem.start;
       command.to=filterItem.to;
     }
-    this._searchGateway._search(command).subscribe((result)=>{
+    this._searchGateway.search(command).subscribe((result)=>{
       if(command.from) {
         result.result.pop();
       }
@@ -161,7 +161,7 @@ export class PersonalDashboardComponent implements OnInit {
   private _makeSearch = (query: string): void => {
     let searchCommand: SearchCommand = new SearchCommand();
     searchCommand.query = query;
-    this._searchGateway._search(searchCommand).subscribe((response: SearchScheduleResponseDTO) => {
+    this._searchGateway.search(searchCommand).subscribe((response: SearchScheduleResponseDTO) => {
       //generare i rettangoli per ogni risposta
       this.result = response.result;
     });
