@@ -1,5 +1,10 @@
-<h1 *ngIf="result.length>0">Ricerche</h1>
-<div class="row" *ngIf="result.length>0">
+<h1 *ngIf="results.length>0">Ricerche</h1>
+<div *ngIf="results.length>0">
+  <h3>Compromised data:</h3>
+  <p><b>research for:</b> {{query}}</p>
+  <p style="color: red">{{response.totalResults}} records: </p>
+</div>
+<div class="row" *ngIf="results.length>0">
   <div style="width: 100%;">
     <div style="display: inline;">
       <input nbInput placeholder="Filtra per data" [nbDatepicker]="formControl" [formControl]="dateFilter">
@@ -10,7 +15,7 @@
     </div>
     <div style="margin-top: 3%;">
       <nb-accordion multi>
-        <nb-accordion-item *ngFor="let searchItem of result">
+        <nb-accordion-item *ngFor="let searchItem of results">
           <nb-accordion-item-header>
             {{searchItem.title}}
           </nb-accordion-item-header>
@@ -19,8 +24,8 @@
             <b>Category:</b> {{searchItem.category}}<br>
             <b>Media:</b> {{searchItem.media}}<br>
             <div>
-              <button *ngIf="searchItem.hasFile" nbButton status="danger" style="float: right;"
-                      (click)="download(searchItem)">Scarica dump
+              <button nbButton status="danger" style="float: right;"
+                      (click)="download(searchItem)">Verifica Dump
               </button>
             </div>
           </nb-accordion-item-body>
@@ -52,13 +57,19 @@
           </table>
         </nb-accordion-item-header>
         <nb-accordion-item-body *ngFor="let search of alertsMap.get(alert.query)">
-          <button *ngIf="search.id==latestAlertIdMap.get(alert.query)" nbButton status="danger" style="float: right;">
+          <button *ngIf="latestAlertIdMap.has(alert.query) && search.id==latestAlertIdMap.get(alert.query)" nbButton status="danger" style="float: right;">
             LATEST
           </button>
-          <b>Titolo</b>{{search.title}}<br>
-          <b>Data:</b> {{search.date | date}}<br>
-          <b>Category:</b> {{search.category}}<br>
-          <b>Media:</b> {{search.media}}<br>
+          <b>id: </b> {{search.id}}<br>
+          <b>Nome Dump: </b>{{search.title}}<br>
+          <b>Data: </b> {{search.date |  date:'dd/MM/yyyy'}}<br>
+          <b>Category: </b> {{search.category}}<br>
+          <b>Media: </b> {{search.media}}<br>
+          <div>
+            <button nbButton status="danger" style="float: right;"
+                    (click)="download(search)">Verifica Dump
+            </button>
+          </div>
         </nb-accordion-item-body>
       </nb-accordion-item>
     </nb-accordion>

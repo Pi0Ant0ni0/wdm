@@ -3,7 +3,7 @@ import {HttpService} from "../../infrastructure/base-service/http.service";
 import {Observable, of, Subject} from "rxjs";
 import {environment} from "../../../environments/environment";
 import {AlertDTO, CreateSessionCommand, SessionDTO, Token, UpdateSessionCommand} from "../model/session.model";
-import {ScheduleCommand, Search} from "../model/search.model";
+import {ScheduleCommand, Search, SearchScheduleResponseDTO} from "../model/search.model";
 import {map} from "rxjs/operators";
 
 @Injectable({
@@ -95,13 +95,11 @@ export class SessionService {
   public deleteAlert = (userId: string, alertQuery: string): Observable<void> => {
     let url = `${environment.gateway}/sessions/${userId}/alerts/${alertQuery}`;
     return this._http.delete(url).pipe(map(() => {
-      this._http.get(url).pipe(map((response: SessionDTO) => {
+      this.getSession(userId).subscribe((response: SessionDTO) => {
         SessionService._currentAlert = response.alertDTOs?response.alertDTOs:[];
-        console.log("alert sul service delete alert: ",SessionService._currentAlert)
-
         this.emitCurrentAlerts(this.currentAlerts);
         return;
-      }));
+      });
     }));
   }
 
@@ -109,9 +107,15 @@ export class SessionService {
   /**
    * get searches from alerts
    * */
-  public getAlertList = (userId: string, alertQuery: string): Observable<Search[]> => {
+  public getAlertList = (userId: string, alertQuery: string): Observable<SearchScheduleResponseDTO> => {
     let url = `${environment.gateway}/sessions/${userId}/alerts/${alertQuery}`;
-    return this._http.get(url);
+    return this._http.get(url).pipe(map((s:SearchScheduleResponseDTO)=>{
+      s.results=s.results.map((item:Search)=>{
+        item.date=item.date*1000
+        return item;
+      });
+      return s;
+    }));
   }
 
 
@@ -132,59 +136,4 @@ export class SessionService {
     let url = `${environment.gateway}/sessions/config/token`
     return this._http.put(url,token);
   }
-
-
-  /**
-   *
-   * MOCKUP
-   *
-   * */
-
-
-  /*
-  * Mockup come _alertList ma simula l'arrivo di un nuovo alert
-  * **/
-  public _getAlertList2 = (userId: string, alertQuery: string): Observable<Search[]> => {
-    let dto: Search[] = [
-      {
-        id: "id1",
-        title: "unisannio segreteria",
-        category: "category1",
-        date: new Date(),
-        media: "txt",
-        hasFile: false,
-      },
-      {
-        id: "id2",
-        title: "unisannio rettorato",
-        category: "category2",
-        date: new Date(),
-        media: "txt",
-        hasFile: true,
-      },
-    ];
-    return of(dto);
-  }
-
-
-  /**
-   * Mockup per avere gli ultimi  5 search di questo alert (alertsList)
-   * */
-  public _getAlertList = (userId: string, alertQuery: string): Observable<Search[]> => {
-    let dto: Search[] = [
-      {
-        id: "id2",
-        title: "unisannio rettorato",
-        category: "category2",
-        date: new Date(),
-        media: "txt",
-        hasFile: true,
-      },
-    ];
-    return of(dto);
-  }
-
-
-
-
 }

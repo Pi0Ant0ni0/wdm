@@ -3,7 +3,7 @@
     <nb-card>
       <nb-card-header>Storico ricerche</nb-card-header>
       <nb-card-body>
-        <ngx-echarts-pie [legend]="legend" [data]="data"></ngx-echarts-pie>
+        <ngx-echarts-pie *ngIf="legend.length>0 && data.length>0" [legend]="legend" [data]="data"></ngx-echarts-pie>
       </nb-card-body>
     </nb-card>
   </div>

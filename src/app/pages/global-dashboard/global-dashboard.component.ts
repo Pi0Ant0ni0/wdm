@@ -25,6 +25,7 @@ export class GlobalDashboardComponent implements OnInit{
       let param ={ search:result.term};
       this._router.navigate(["/pages/personal"],{queryParams:param});
     });
+
   }
 
   ngOnInit(): void {

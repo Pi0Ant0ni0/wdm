@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import {HttpService} from "../../infrastructure/base-service/http.service";
 import {Observable, of} from "rxjs";
 import {environment} from "../../../environments/environment";
-import {BreachDTO} from "../model/breach.model";
+import {BreachDTO, DumpExistsResponse} from "../model/breach.model";
 
 @Injectable({
   providedIn: 'root'
@@ -15,15 +15,27 @@ export class BreachService {
    * get grepped string from dump
    * */
   public download=(fileName:String, query:string):Observable<BreachDTO>=>{
-    let url = `${environment.gateway}/breaches/${fileName}?query=${query}`;
-    return this._http.get(url,);
-  }
 
+    if(fileName.includes("[") || fileName.includes("]")){
+      fileName=fileName.replace("[","%5b");
+      fileName=fileName.replace("]","%5d");
+    }
+    let url = `${environment.gateway}/breaches/${fileName}?query=${query}`;
+    return this._http.get(url);
+  }
 
   /**
-   * get grepped string from dump
+   * check if dump exists
    * */
-  public _download=(fileName:String,query:string):Observable<BreachDTO>=>{
-    return of({result:"link: tinder.com, userName:franco, password:frattolillo78"});
+  public exists=(fileName:String):Observable<DumpExistsResponse>=>{
+
+    if(fileName.includes("[") || fileName.includes("]")){
+      fileName=fileName.replace("[","%5b");
+      fileName=fileName.replace("]","%5d");
+    }
+    let url = `${environment.gateway}/breaches/${fileName}/present`;
+    return this._http.get(url);
   }
+
+
 }

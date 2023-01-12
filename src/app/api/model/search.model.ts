@@ -1,8 +1,9 @@
 export class SearchScheduleResponseDTO{
   public id:string;
-  public timestamp:Date;
+  public timestamp:number;
   public query:string;
-  public result:Search[];
+  public totalResults:number;
+  public results:Search[];
 }
 
 export class HistoryResponseDTO{
@@ -17,12 +18,11 @@ export class QueryOccurancy{
 export class Search{
   public id:string;
   public title:string;
-  public date:Date;
+  public date:number;
   public media:string;
   public category:string;
-  public hasFile:boolean;
 
-  constructor(id:string,title: string, date: Date, media: string, category: string) {
+  constructor(id:string,title: string, date: number, media: string, category: string) {
     this.id=id;
     this.title = title;
     this.date = date;
@@ -33,8 +33,8 @@ export class Search{
 
 export class SearchCommand{
   public query:string;
-  public from?:number;
-  public to?:number;
+  public fromDate?:number;
+  public toDate?:number;
 }
 
 export class ScheduleCommand{

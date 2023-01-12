@@ -1,4 +1,4 @@
-export const basePath ="http://localhost:8080/wdm";
+
 
 export const environment = {
   keycloak: {
@@ -16,15 +16,14 @@ export const environment = {
     // set the scope for the permissions the client should request
     // The first three are defined by OIDC.
     scope: 'openid profile email',
-    // Remove the requirement of using Https to simplify the demo
     requireHttps: false,
     // at_hash is not present in JWT token
-    showDebugInformation: true,
+    showDebugInformation: false,
     disableAtHashCheck: true,
-    post_logout_redirect_uri:"http://localhost:4200"
+    post_logout_redirect_uri:"http://localhost:4200",
+
   },
   production: false,
-  //TODO modifica il path
   gateway: "http://localhost:8081/unisannio/DWM/api",
   mqttHostName: "test.mosquitto.org",
   port: 8081,

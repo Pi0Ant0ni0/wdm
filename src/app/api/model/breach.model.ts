@@ -4,3 +4,8 @@ export class BreachDTO{
    * */
   public result:string;
 }
+
+export class DumpExistsResponse{
+  public exists:boolean;
+
+}

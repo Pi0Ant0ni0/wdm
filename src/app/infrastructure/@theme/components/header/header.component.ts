@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {
   NbDialogService,
-  NbGlobalPhysicalPosition,
+  NbGlobalPhysicalPosition, NbIconConfig,
   NbMenuBag,
   NbMenuService, NbSearchService,
   NbSidebarService,
@@ -214,7 +214,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
         },
         (error) => {
           console.log("no session found for ", this.profile.userId, " creating new session. Error: ", error);
-          //TODO va creata la sessione
           this._sessionService.create(this.profile.userId, {theme: "dark", userId: this.profile.userId})
             .subscribe((sessionCreated) => this._session = sessionCreated)
         }
@@ -232,16 +231,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
     const config = {
       status: "warning",
       destroyByClick: true,
-      duration: 2000,
+      duration: 0,
       hasIcon: true,
       position: NbGlobalPhysicalPosition.TOP_RIGHT,
       preventDuplicates: false,
+      icon:{ icon: "bell-outline", pack: 'eva' }
     };
-    const titleContent = title ? `. ${title}` : '';
 
     this._toastrService.show(
       body,
-      `Toast ${titleContent}`,
+      title,
       config);
   }
 

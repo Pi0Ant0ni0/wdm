@@ -19,7 +19,7 @@ import {HttpService} from "../../infrastructure/base-service/http.service";
 import {Profile} from "../../infrastructure/auth-service/auth-model/auth.model";
 import {FormControl} from "@angular/forms";
 import {BreachService} from "../../api/services/breach.service";
-import {BreachDTO} from "../../api/model/breach.model";
+import {BreachDTO, DumpExistsResponse} from "../../api/model/breach.model";
 import {
   GenericDialogComponent
 } from "../../infrastructure/@theme/components/header/user-details/generic-dialog.component";
@@ -35,7 +35,7 @@ export class PersonalDashboardComponent implements OnInit {
   public query:string;
 
   //result from query
-  public result: Search[] = [];
+  public results: Search[] = [];
   //alerts
   public alerts: AlertDTO[] = [];
   //map of alert and alertsList
@@ -44,11 +44,12 @@ export class PersonalDashboardComponent implements OnInit {
   //latest alert i must highlight it
   public latestAlertIdMap: Map<string, string> = new Map();
 
+  //cahced search response
+  public response:SearchScheduleResponseDTO;
   //user logged in
   private _profile:Profile;
 
-  //FIXME remove solo per dinamicita
-  private _newServices:boolean =false;
+
   public dateFilter:FormControl = new FormControl(new Date());
 
   constructor(private _activatedRoute: ActivatedRoute,
@@ -99,10 +100,9 @@ export class PersonalDashboardComponent implements OnInit {
       //retrieve latest alert
       this._sessionService.getLatestAlertObservable().subscribe((latest: Map<string, string>) => {
           this.latestAlertIdMap = latest;
-          this._newServices = true;
           for (let query of latest.keys()) {
-            this._sessionService._getAlertList2(this._profile.userId,query).subscribe(alertList => {
-              this.alertsMap.set(query, alertList);
+            this._sessionService.getAlertList(this._profile.userId,query).subscribe((response:SearchScheduleResponseDTO) => {
+              this.alertsMap.set(query, response.results);
             });
           }
         });
@@ -115,14 +115,11 @@ export class PersonalDashboardComponent implements OnInit {
     let filterItem =this.dateFilter.value;
     command.query=this.query;
     if(filterItem){
-      command.from=filterItem.start;
-      command.to=filterItem.to;
+      command.fromDate=filterItem.start? filterItem.start.getTime()/1000:null;
+      command.toDate=filterItem.end? filterItem.end.getTime()/1000:null;
     }
     this._searchGateway.search(command).subscribe((result)=>{
-      if(command.from) {
-        result.result.pop();
-      }
-      this.result=result.result;
+      this.results=result.results;
     });
   }
 
@@ -130,40 +127,62 @@ export class PersonalDashboardComponent implements OnInit {
    * get last 5 alerts for that query
    * */
   public getAlerts(query: string): void {
-    if(this._newServices){
-      this._sessionService._getAlertList2(this._profile.userId,query).subscribe(alertList=>{
-        this.alertsMap.set(query,alertList);
+      this._sessionService.getAlertList(this._profile.userId,query).subscribe((response:SearchScheduleResponseDTO) => {
+        this.alertsMap.set(query, response.results);
+        console.log(this.latestAlertIdMap);
       });
-    }else {
-      this._sessionService._getAlertList(this._profile.userId,query).subscribe(alertList => {
-        this.alertsMap.set(query, alertList);
-      });
-    }
   }
 
 
+
+
+
   /**
-   * download specified dump
+   * Check if dump exist, and if exist returns  shows a dialog with dump content grepped on the query
    * */
   public download(searchItem: Search) {
-    this._breachService._download(searchItem.title,this.query).subscribe((data:BreachDTO)=>{
-      this._dialogService.open(GenericDialogComponent,{
-        context:{
-          title:`Data grepped from ${searchItem.title}`,
-          description:data.result
+    //se è un url lo apro
+    if(searchItem.title.startsWith("http")) {
+      window.open(searchItem.title, "_blank");
+      //se non è un url faccio richiesta a telegram
+    }else {
+      //se è il percorso ad un file prendo solo il nome del file
+      let title = searchItem.title;
+      if (searchItem.title.includes("/")) {
+        let array = searchItem.title.split("/");
+        title = array[(array.length - 1)];
+      }
+      this._breachService.exists(title).subscribe((data: DumpExistsResponse) => {
+        if (data.exists) {
+          this._breachService.download(title, this.query).subscribe((data: BreachDTO) => {
+            this._dialogService.open(GenericDialogComponent, {
+              context: {
+                title: `Data grepped from ${searchItem.title}`,
+                description: data.result
+              }
+            });
+          });
+        } else {
+          this._dialogService.open(GenericDialogComponent, {
+            context: {
+              title: `Dump non trovato`,
+              description: `Non è stato possibile trovare il dump: ${title} in chiaro`
+            }
+          });
         }
       });
-
-    });
+    }
   }
 
   //create searchCommand and execute the search
   private _makeSearch = (query: string): void => {
     let searchCommand: SearchCommand = new SearchCommand();
     searchCommand.query = query;
+    this.query=query;
     this._searchGateway.search(searchCommand).subscribe((response: SearchScheduleResponseDTO) => {
       //generare i rettangoli per ogni risposta
-      this.result = response.result;
+      this.response=response;
+      this.results = response.results;
     });
   }
 
@@ -171,12 +190,15 @@ export class PersonalDashboardComponent implements OnInit {
   public createAlert = (): void => {
     let searchCommand: ScheduleCommand = new ScheduleCommand();
     searchCommand.query = this.query;
+    console.log(this.query)
     this._sessionService.createAlert(this._profile.userId,{query:this.query}).subscribe(()=>console.log("alert created"));
   }
 
   //delete alert
   public deleteAlert = (query:string): void => {
-    this._sessionService.deleteAlert(this._profile.userId,query).subscribe(()=>console.log("alert deleted"));
+    this._sessionService.deleteAlert(this._profile.userId,query).subscribe(()=>{
+      console.log("alert deleted");
+    });
   }
 
 

@@ -1,8 +1,8 @@
 import { NgModule } from '@angular/core';
 import {
-  NbButtonModule,
-  NbUserModule,
-  NbIconModule, NbAccordionModule, NbDatepickerModule, NbCalendarRangeModule, NbInputModule
+    NbButtonModule,
+    NbUserModule,
+    NbIconModule, NbAccordionModule, NbDatepickerModule, NbCalendarRangeModule, NbInputModule, NbLayoutModule
 } from '@nebular/theme';
 import {
   MqttModule,
@@ -27,18 +27,19 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
 
 
 @NgModule({
-  imports: [
-    NbUserModule,
-    NbButtonModule,
-    NbIconModule,
-    NbAccordionModule,
-    CommonModule,
-    MqttModule.forRoot(MQTT_SERVICE_OPTIONS),
-    NbDatepickerModule,
-    NbCalendarRangeModule,
-    NbInputModule,
-    ReactiveFormsModule
-  ],
+    imports: [
+        NbUserModule,
+        NbButtonModule,
+        NbIconModule,
+        NbAccordionModule,
+        CommonModule,
+        MqttModule.forRoot(MQTT_SERVICE_OPTIONS),
+        NbDatepickerModule,
+        NbCalendarRangeModule,
+        NbInputModule,
+        ReactiveFormsModule,
+        NbLayoutModule
+    ],
   declarations: [
     PersonalDashboardComponent,
 
