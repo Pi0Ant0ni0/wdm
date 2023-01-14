@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {
   NbDialogService,
-  NbGlobalPhysicalPosition, NbIconConfig,
+  NbGlobalPhysicalPosition,
   NbMenuBag,
   NbMenuService, NbSearchService,
   NbSidebarService,
@@ -10,7 +10,6 @@ import {
 
 import {LayoutService} from '../../../@core/utils';
 import {Subject} from 'rxjs';
-import {IMqttMessage, MqttService} from "ngx-mqtt";
 import {AlertDTO, SessionDTO, Token} from "../../../../api/model/session.model";
 import {Router} from "@angular/router";
 import {Profile} from "../../../auth-service/auth-model/auth.model";
@@ -18,7 +17,10 @@ import {AuthConfigService} from "../../../auth-service/auth-config.service";
 import {GenericDialogComponent} from "./user-details/generic-dialog.component";
 import {SessionService} from "../../../../api/services/session.service";
 import {IntelxTokenDialogComponent} from "./intelx-token-dialog/intelx-token-dialog.component";
+import * as mqtt from 'mqtt/dist/mqtt.min'
+import {environment} from "../../../../../environments/environment";
 import {MqttAlert} from "../../../../api/model/Mqtt.model";
+import {EditAlertDialogComponent} from "./edit-alert-dialog/edit-alert-dialog.component";
 
 
 @Component({
@@ -26,7 +28,10 @@ import {MqttAlert} from "../../../../api/model/Mqtt.model";
   styleUrls: ['./header.component.scss'],
   templateUrl: './header.component.html',
 })
+
+
 export class HeaderComponent implements OnInit, OnDestroy {
+
 
   private destroy$: Subject<void> = new Subject<void>();
   /**
@@ -78,13 +83,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
    * */
   private _token: string;
 
+  /**
+   * client mqtt
+   * */
+  private mqttClient: mqtt.MqttClient;
+
 
   constructor(private sidebarService: NbSidebarService,
               private _menuService: NbMenuService,
               private themeService: NbThemeService,
               private layoutService: LayoutService,
               private _toastrService: NbToastrService,
-              private _mqttService: MqttService,
               private _router: Router,
               private _authService: AuthConfigService,
               private _dialogService: NbDialogService,
@@ -100,6 +109,26 @@ export class HeaderComponent implements OnInit, OnDestroy {
      * */
     this._authService.profile.subscribe((profile: Profile) => {
 
+      //creating mqtt connection
+      let _MQTTOptions: mqtt.IClientOptions = {
+        username: environment.username,
+        password: environment.password,
+        resubscribe: true,
+        clientId: profile.email,
+        connectTimeout: environment.connectTimeout
+      }
+      this.mqttClient = mqtt.connect(`wss://${environment.mqttHostName}:8884/mqtt`, _MQTTOptions)
+      this.mqttClient.on('message', (topic, message) => {
+        // message is Buffer
+        let notification: MqttAlert = {
+          id: JSON.parse(message.toString()).id,
+          query: JSON.parse(message.toString()).query,
+        }
+        this._showToast("Nuovo breach", "Alert: " + notification.query);
+        this.newAlert = true;
+        this.latestAlert.set(notification.query, notification.id);
+        this._sessionService.emitLatestAlertsMap(this.latestAlert);
+      });
 
       //get logged user
       this.profile = profile;
@@ -128,21 +157,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
           }
         }
       });
-
       this._sessionService.getToken().subscribe((token: Token) => {
         if (token && token.token && token.token.length > 0) {
           this._token = token.token;
         }
       });
-
-
       /**
        * subscribing to logout event, when is clicked trigger logout
        * subscribing to profile event when is clicked show a dialog with profile data
        * */
       this._menuService.onItemClick().subscribe((result: NbMenuBag) => {
         if (result.item) {
-          console.log("selected: ", result.item.title)
           switch (result.item.title) {
             /**
              * open dialog with user details
@@ -187,8 +212,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
           }
         }
       });
-
-
       this._sessionService.getSession(this.profile.userId).subscribe(
         (session: SessionDTO) => {
           this._session = session;
@@ -198,16 +221,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
           //subscribe to alert topic
           if (this.alerts) {
             this.alerts.forEach(a => {
-              this._mqttService.observe(`${a.query}`).subscribe((message: IMqttMessage) => {
-                this._showToast("Nuovo breach", "Alert: " + a.query);
-                this.newAlert = true;
-                let notification: MqttAlert = {
-                  id: JSON.parse(message.payload.toString()).id,
-                  query: JSON.parse(message.payload.toString()).query,
-                }
-                this.latestAlert.set(notification.query, notification.id);
-                this._sessionService.emitLatestAlertsMap(this.latestAlert);
-              });
+              this.mqttClient.subscribe(`unisannio/DWM/alert/${a.query}`);
             });
           }
 
@@ -216,15 +230,24 @@ export class HeaderComponent implements OnInit, OnDestroy {
           console.log("no session found for ", this.profile.userId, " creating new session. Error: ", error);
           this._sessionService.create(this.profile.userId, {theme: "dark", userId: this.profile.userId})
             .subscribe((sessionCreated) => this._session = sessionCreated)
-        }
-      );
+        });
+      this._sessionService.getCurrentAlertsObservable().subscribe((alert) => {
+        this.alerts = alert as AlertDTO[];
+        this.alerts.forEach(a => {
+          this.mqttClient.subscribe(`unisannio/DWM/alert/${a.query}`);
+        });
+      })
 
     });
   }
 
-  public resetAlertStatus() {
-    this._router.navigate(["/pages/personal"]);
-    this.newAlert = false;
+  public editAlerts() {
+    this._dialogService.open(EditAlertDialogComponent).onClose.subscribe((alertsToDelete: string[]) => {
+      for (let alertToDelete of alertsToDelete) {
+        this.mqttClient.unsubscribe(`unisannio/DWM/alert/${alertToDelete}`)
+      }
+      this._sessionService.getSession(this.profile.userId).subscribe();
+    })
   }
 
   private _showToast(title: string, body: string) {
@@ -235,7 +258,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       hasIcon: true,
       position: NbGlobalPhysicalPosition.TOP_RIGHT,
       preventDuplicates: false,
-      icon:{ icon: "bell-outline", pack: 'eva' }
+      icon: {icon: "bell-outline", pack: 'eva'}
     };
 
     this._toastrService.show(

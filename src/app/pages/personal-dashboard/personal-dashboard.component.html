@@ -17,7 +17,7 @@
       <nb-accordion multi>
         <nb-accordion-item *ngFor="let searchItem of results">
           <nb-accordion-item-header>
-            {{searchItem.title}}
+            <nb-icon icon="file-text-outline"  status="info" style="margin-right: 1%"></nb-icon>{{searchItem.title}}
           </nb-accordion-item-header>
           <nb-accordion-item-body>
             <b>Data:</b> {{searchItem.date | date}}<br>
@@ -45,16 +45,7 @@
     <nb-accordion multi>
       <nb-accordion-item *ngFor="let alert of alerts">
         <nb-accordion-item-header (click)="getAlerts(alert.query)">
-          <table style="width: 95%">
-            <tr>
-              <th>
-                {{alert.query}}
-              </th>
-              <th style="float: right;">
-                <button nbButton status="danger" (click)="deleteAlert(alert.query)">Elimina Alert</button>
-              </th>
-            </tr>
-          </table>
+          <nb-icon icon="bell-outline" status="info" style="margin-right: 1%"></nb-icon>{{alert.query}}
         </nb-accordion-item-header>
         <nb-accordion-item-body *ngFor="let search of alertsMap.get(alert.query)">
           <button *ngIf="latestAlertIdMap.has(alert.query) && search.id==latestAlertIdMap.get(alert.query)" nbButton status="danger" style="float: right;">

@@ -1,7 +1,13 @@
 import { Injectable } from '@angular/core';
 import {HttpService} from "../../infrastructure/base-service/http.service";
 import {Observable, of} from "rxjs";
-import {HistoryResponseDTO, Search, SearchCommand, SearchScheduleResponseDTO} from "../model/search.model";
+import {
+  HistoryResponseDTO,
+  Search,
+  SearchCommand,
+  SearchScheduleResponseDTO,
+  StackGraphDTO
+} from "../model/search.model";
 import {environment} from "../../../environments/environment";
 import {map} from "rxjs/operators";
 
@@ -28,10 +34,18 @@ export class SearchService {
   }
 
   /**
-   *request history searches for a given query
+   *request history searches
    * */
   public history=():Observable<HistoryResponseDTO>=>{
     let url = `${environment.gateway}/searches`;
+    return this._http.get(url);
+  }
+
+  /**
+   *request history searches for last week
+   * */
+  public lastWeekHisotry=():Observable<StackGraphDTO>=>{
+    let url = `${environment.gateway}/searches/lastWeek`;
     return this._http.get(url);
   }
 

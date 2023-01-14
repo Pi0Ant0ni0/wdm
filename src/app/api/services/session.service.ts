@@ -4,7 +4,7 @@ import {Observable, of, Subject} from "rxjs";
 import {environment} from "../../../environments/environment";
 import {AlertDTO, CreateSessionCommand, SessionDTO, Token, UpdateSessionCommand} from "../model/session.model";
 import {ScheduleCommand, Search, SearchScheduleResponseDTO} from "../model/search.model";
-import {map} from "rxjs/operators";
+import {concat, map} from "rxjs/operators";
 
 @Injectable({
   providedIn: 'root'
@@ -38,7 +38,6 @@ export class SessionService {
 
   public emitCurrentAlerts = (alerts: AlertDTO[]): void => {
     this.currentAlertsSubject.next(alerts);
-    SessionService._currentAlert = alerts;
   }
 
   public create = (userId: string, command: CreateSessionCommand): Observable<SessionDTO> => {
@@ -64,11 +63,10 @@ export class SessionService {
    * */
   public getSession = (userId: string): Observable<SessionDTO> => {
     let url = `${environment.gateway}/sessions`;
-    return this._http.get(url).pipe(map((response: SessionDTO) => {
-      SessionService._currentAlert = response.alertDTOs;
-      console.log("alert sul service get: ",SessionService._currentAlert)
+    return this._http.get(url).pipe(map((session: SessionDTO) => {
+      SessionService._currentAlert = session.alertDTOs?session.alertDTOs:[];
       this.emitCurrentAlerts(this.currentAlerts);
-      return response;
+      return session;
     }));
   }
 
@@ -79,12 +77,7 @@ export class SessionService {
   public createAlert = (userId: string, command: ScheduleCommand): Observable<void> => {
     let url = `${environment.gateway}/sessions/${userId}/alerts`;
     return this._http.post(url, command).pipe((map(() => {
-      this.getSession(userId).subscribe((session: SessionDTO) => {
-        //aggiorno gli alert dell'utente
-        SessionService._currentAlert = session.alertDTOs?session.alertDTOs:[];
-        console.log("alert sul service post alert: ",SessionService._currentAlert)
-        this.emitCurrentAlerts(this.currentAlerts);
-      })
+      this.getSession(userId).subscribe();
     })));
   }
 
@@ -94,15 +87,10 @@ export class SessionService {
    * */
   public deleteAlert = (userId: string, alertQuery: string): Observable<void> => {
     let url = `${environment.gateway}/sessions/${userId}/alerts/${alertQuery}`;
-    return this._http.delete(url).pipe(map(() => {
-      this.getSession(userId).subscribe((response: SessionDTO) => {
-        SessionService._currentAlert = response.alertDTOs?response.alertDTOs:[];
-        this.emitCurrentAlerts(this.currentAlerts);
-        return;
-      });
-    }));
+    return this._http.delete(url,null).pipe((map(() => {
+      this.getSession(userId).subscribe();
+    })));
   }
-
 
   /**
    * get searches from alerts

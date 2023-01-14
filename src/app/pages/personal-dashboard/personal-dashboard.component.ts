@@ -11,9 +11,6 @@ import {ActivatedRoute} from "@angular/router";
 import {AlertDTO} from "../../api/model/session.model";
 import {SessionService} from "../../api/services/session.service";
 
-import {
-  MqttService,
-} from 'ngx-mqtt';
 import {AuthConfigService} from "../../infrastructure/auth-service/auth-config.service";
 import {HttpService} from "../../infrastructure/base-service/http.service";
 import {Profile} from "../../infrastructure/auth-service/auth-model/auth.model";
@@ -32,7 +29,7 @@ import {
 export class PersonalDashboardComponent implements OnInit {
 
   //search query
-  public query:string;
+  public query: string;
 
   //result from query
   public results: Search[] = [];
@@ -45,24 +42,23 @@ export class PersonalDashboardComponent implements OnInit {
   public latestAlertIdMap: Map<string, string> = new Map();
 
   //cahced search response
-  public response:SearchScheduleResponseDTO;
+  public response: SearchScheduleResponseDTO;
   //user logged in
-  private _profile:Profile;
+  private _profile: Profile;
 
 
-  public dateFilter:FormControl = new FormControl(new Date());
+  public dateFilter: FormControl = new FormControl(new Date());
 
   constructor(private _activatedRoute: ActivatedRoute,
               private _searchService: NbSearchService,
               private _searchGateway: SearchService,
               private _sessionService: SessionService,
-              private _mqttService: MqttService,
               private _toastrService: NbToastrService,
               private _oauthService: AuthConfigService,
               private _httpService: HttpService,
               private _profileService: AuthConfigService,
-              private _breachService:BreachService,
-              private _dialogService:NbDialogService
+              private _breachService: BreachService,
+              private _dialogService: NbDialogService
   ) {
     //subscribe to search event to make query
     this._searchService.onSearchSubmit().subscribe((result) => {
@@ -83,7 +79,6 @@ export class PersonalDashboardComponent implements OnInit {
     });
 
 
-
     this._profileService.profile.subscribe((profile: Profile) => {
       this._profile = profile;
       /**
@@ -94,32 +89,32 @@ export class PersonalDashboardComponent implements OnInit {
        * subscribe to alert update
        * */
       this._sessionService.getCurrentAlertsObservable().subscribe((alerts) => {
-        this.alerts = alerts;
+        this.alerts = alerts as AlertDTO[];
       });
 
       //retrieve latest alert
       this._sessionService.getLatestAlertObservable().subscribe((latest: Map<string, string>) => {
-          this.latestAlertIdMap = latest;
-          for (let query of latest.keys()) {
-            this._sessionService.getAlertList(this._profile.userId,query).subscribe((response:SearchScheduleResponseDTO) => {
-              this.alertsMap.set(query, response.results);
-            });
-          }
-        });
+        this.latestAlertIdMap = latest;
+        for (let query of latest.keys()) {
+          this._sessionService.getAlertList(this._profile.userId, query).subscribe((response: SearchScheduleResponseDTO) => {
+            this.alertsMap.set(query, response.results);
+          });
+        }
+      });
     });
   }
 
 
-  public filter():void{
-    let command : SearchCommand= new SearchCommand();
-    let filterItem =this.dateFilter.value;
-    command.query=this.query;
-    if(filterItem){
-      command.fromDate=filterItem.start? filterItem.start.getTime()/1000:null;
-      command.toDate=filterItem.end? filterItem.end.getTime()/1000:null;
+  public filter(): void {
+    let command: SearchCommand = new SearchCommand();
+    let filterItem = this.dateFilter.value;
+    command.query = this.query;
+    if (filterItem) {
+      command.fromDate = filterItem.start ? filterItem.start.getTime() / 1000 : null;
+      command.toDate = filterItem.end ? filterItem.end.getTime() / 1000 : null;
     }
-    this._searchGateway.search(command).subscribe((result)=>{
-      this.results=result.results;
+    this._searchGateway.search(command).subscribe((result) => {
+      this.results = result.results;
     });
   }
 
@@ -127,14 +122,10 @@ export class PersonalDashboardComponent implements OnInit {
    * get last 5 alerts for that query
    * */
   public getAlerts(query: string): void {
-      this._sessionService.getAlertList(this._profile.userId,query).subscribe((response:SearchScheduleResponseDTO) => {
-        this.alertsMap.set(query, response.results);
-        console.log(this.latestAlertIdMap);
-      });
+    this._sessionService.getAlertList(this._profile.userId, query).subscribe((response: SearchScheduleResponseDTO) => {
+      this.alertsMap.set(query, response.results);
+    });
   }
-
-
-
 
 
   /**
@@ -142,10 +133,10 @@ export class PersonalDashboardComponent implements OnInit {
    * */
   public download(searchItem: Search) {
     //se è un url lo apro
-    if(searchItem.title.startsWith("http")) {
+    if (searchItem.title.startsWith("http")) {
       window.open(searchItem.title, "_blank");
       //se non è un url faccio richiesta a telegram
-    }else {
+    } else {
       //se è il percorso ad un file prendo solo il nome del file
       let title = searchItem.title;
       if (searchItem.title.includes("/")) {
@@ -178,10 +169,10 @@ export class PersonalDashboardComponent implements OnInit {
   private _makeSearch = (query: string): void => {
     let searchCommand: SearchCommand = new SearchCommand();
     searchCommand.query = query;
-    this.query=query;
+    this.query = query;
     this._searchGateway.search(searchCommand).subscribe((response: SearchScheduleResponseDTO) => {
       //generare i rettangoli per ogni risposta
-      this.response=response;
+      this.response = response;
       this.results = response.results;
     });
   }
@@ -190,19 +181,8 @@ export class PersonalDashboardComponent implements OnInit {
   public createAlert = (): void => {
     let searchCommand: ScheduleCommand = new ScheduleCommand();
     searchCommand.query = this.query;
-    console.log(this.query)
-    this._sessionService.createAlert(this._profile.userId,{query:this.query}).subscribe(()=>console.log("alert created"));
+    this._sessionService.createAlert(this._profile.userId, {query: this.query}).subscribe();
   }
-
-  //delete alert
-  public deleteAlert = (query:string): void => {
-    this._sessionService.deleteAlert(this._profile.userId,query).subscribe(()=>{
-      console.log("alert deleted");
-    });
-  }
-
-
-
 
 
 }

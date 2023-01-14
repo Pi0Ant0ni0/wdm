@@ -40,6 +40,8 @@ import { GenericDialogComponent } from './components/header/user-details/generic
 import { IntelxTokenDialogComponent } from './components/header/intelx-token-dialog/intelx-token-dialog.component';
 import {ReactiveFormsModule} from "@angular/forms";
 import {HttpService} from "../base-service/http.service";
+import { EditAlertDialogComponent } from './components/header/edit-alert-dialog/edit-alert-dialog.component';
+import {Ng2SmartTableModule} from "ng2-smart-table";
 
 const NB_MODULES = [
   NbLayoutModule,
@@ -73,9 +75,9 @@ const PIPES = [
 ];
 
 @NgModule({
-  imports: [CommonModule, ...NB_MODULES, ReactiveFormsModule],
+    imports: [CommonModule, ...NB_MODULES, ReactiveFormsModule, Ng2SmartTableModule],
   exports: [CommonModule, ...PIPES, ...COMPONENTS],
-  declarations: [...COMPONENTS, ...PIPES, GenericDialogComponent, IntelxTokenDialogComponent],
+  declarations: [...COMPONENTS, ...PIPES, GenericDialogComponent, IntelxTokenDialogComponent, EditAlertDialogComponent],
   providers: [HttpService]
 })
 export class ThemeModule {

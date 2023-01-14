@@ -95,6 +95,7 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
+            "ssl": true,
             "browserTarget": "ngx-admin-demo:build"
           },
           "configurations": {

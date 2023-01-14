@@ -40,3 +40,9 @@ export class SearchCommand{
 export class ScheduleCommand{
   public query:string;
 }
+
+
+export class StackGraphDTO{
+  public categories:string[];
+  public y:number[][];
+}
