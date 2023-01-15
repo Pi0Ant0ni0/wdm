@@ -1,0 +1,68 @@
+<h1 *ngIf="results.length>0">Ricerche</h1>
+<div *ngIf="results.length>0">
+  <h3>Compromised data:</h3>
+  <p><b>research for:</b> {{query}}</p>
+  <p style="color: red">{{response.totalResults}} records: </p>
+</div>
+<div class="row" *ngIf="results.length>0">
+  <div style="width: 100%;">
+    <div style="display: inline;">
+      <input nbInput placeholder="Filtra per data" [nbDatepicker]="formControl" [formControl]="dateFilter">
+      <nb-rangepicker #formControl></nb-rangepicker>
+      <button nbButton status="danger" style="float: right;"
+              (click)="filter()">Filtra
+      </button>
+    </div>
+    <div style="margin-top: 3%;">
+      <nb-accordion multi>
+        <nb-accordion-item *ngFor="let searchItem of results">
+          <nb-accordion-item-header>
+            <nb-icon icon="file-text-outline"  status="info" style="margin-right: 1%"></nb-icon>{{searchItem.title}}
+          </nb-accordion-item-header>
+          <nb-accordion-item-body>
+            <b>Data:</b> {{searchItem.date | date}}<br>
+            <b>Category:</b> {{searchItem.category}}<br>
+            <b>Media:</b> {{searchItem.media}}<br>
+            <div>
+              <button nbButton status="danger" style="float: right;"
+                      (click)="download(searchItem)">Verifica Dump
+              </button>
+            </div>
+          </nb-accordion-item-body>
+        </nb-accordion-item>
+      </nb-accordion>
+    </div>
+  </div>
+  <div style="width: 100%">
+    <button nbButton status="danger" style="float: right; margin-top: 3%;"
+            (click)="createAlert()">Crea Alert
+    </button>
+  </div>
+</div>
+<h1 *ngIf="alerts && alerts.length>0">Alert configurati</h1>
+<div class="row" *ngIf="alerts && alerts.length>0">
+  <div style="width: 100%">
+    <nb-accordion multi>
+      <nb-accordion-item *ngFor="let alert of alerts">
+        <nb-accordion-item-header (click)="getAlerts(alert.query)">
+          <nb-icon icon="bell-outline" status="info" style="margin-right: 1%"></nb-icon>{{alert.query}}
+        </nb-accordion-item-header>
+        <nb-accordion-item-body *ngFor="let search of alertsMap.get(alert.query)">
+          <button *ngIf="latestAlertIdMap.has(alert.query) && search.id==latestAlertIdMap.get(alert.query)" nbButton status="danger" style="float: right;">
+            LATEST
+          </button>
+          <b>id: </b> {{search.id}}<br>
+          <b>Nome Dump: </b>{{search.title}}<br>
+          <b>Data: </b> {{search.date |  date:'dd/MM/yyyy'}}<br>
+          <b>Category: </b> {{search.category}}<br>
+          <b>Media: </b> {{search.media}}<br>
+          <div>
+            <button nbButton status="danger" style="float: right;"
+                    (click)="download(search)">Verifica Dump
+            </button>
+          </div>
+        </nb-accordion-item-body>
+      </nb-accordion-item>
+    </nb-accordion>
+  </div>
+</div>

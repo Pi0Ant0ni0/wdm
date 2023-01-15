@@ -1,0 +1,10 @@
+<nb-card>
+  <nb-card-header>{{ title }}</nb-card-header>
+  <nb-card-body *ngIf="intelxForm" [formGroup]="intelxForm">
+    <input type="text" nbInput shape="round" placeholder="Token" formControlName="intelxControl" style="width: 100%">
+  </nb-card-body>
+  <nb-card-footer *ngIf="intelxForm">
+    <button nbButton hero status="primary" (click)="updateToken()" style="margin-right: 3%" [disabled]="!intelxForm.valid">Salva</button>
+    <button nbButton hero status="primary" (click)="dismiss()">Chiudi</button>
+  </nb-card-footer>
+</nb-card>
