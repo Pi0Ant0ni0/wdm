@@ -146,10 +146,15 @@ export class PersonalDashboardComponent implements OnInit {
       this._breachService.exists(title).subscribe((data: DumpExistsResponse) => {
         if (data.exists) {
           this._breachService.download(title, this.query).subscribe((data: BreachDTO) => {
+            console.log(data);
+            let greppedStr = '';
+            for(let grep of data.results){
+              greppedStr+=grep+"\n";
+            }
             this._dialogService.open(GenericDialogComponent, {
               context: {
                 title: `Data grepped from ${searchItem.title}`,
-                description: data.result
+                description: greppedStr
               }
             });
           });

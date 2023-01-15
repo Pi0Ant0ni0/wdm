@@ -2,7 +2,7 @@ export class BreachDTO{
   /**
    * roba greppata dal dump
    * */
-  public result:string;
+  public results:string[];
 }
 
 export class DumpExistsResponse{
